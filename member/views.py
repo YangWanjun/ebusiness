@@ -1,3 +1,7 @@
-from django.shortcuts import render
+from . import models, serializers
+from utils.django_base import BaseModelViewSet
 
-# Create your views here.
+
+class MemberViewSet(BaseModelViewSet):
+    queryset = models.Member.objects.all()
+    serializer_class = serializers.MemberSerializer

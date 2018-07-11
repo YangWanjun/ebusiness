@@ -6,4 +6,4 @@ class MemberSerializer(BaseModelSerializer):
 
     class Meta:
         model = models.Member
-        fields = ('id', 'last_name', 'first_name')
+        fields = '__all__'

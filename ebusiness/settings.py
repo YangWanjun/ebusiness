@@ -27,7 +27,10 @@ SECRET_KEY = 'vh(=pym9m$%5ehc(2voz&i!iq^o%w@6utjprnj@!lu9ps6ap(='
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
+CORS_ORIGIN_WHITELIST = (
+    'localhost:3000',
+    '127.0.0.1:3000',
+)
 
 # Application definition
 
@@ -38,12 +41,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'rest_framework',
     'master.apps.MasterConfig',
     'member.apps.MemberConfig',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -107,6 +112,10 @@ else:
         }
     }
 
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 25
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators

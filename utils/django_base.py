@@ -70,8 +70,11 @@ class BaseModelViewSet(ModelViewSet):
             return self.get_paginated_response(serializer.data, columns)
 
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
+        columns = serializer.child.get_columns()
+        return Response(OrderedDict([
+            ('columns', columns or []),
+            ('results', serializer.data),
+        ]))
 
     def get_paginated_response(self, data, columns=None):
         assert self.paginator is not None

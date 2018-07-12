@@ -2,7 +2,14 @@ from django.core.validators import RegexValidator
 from django.db import models
 
 from utils import constants
-from utils.django_base import BaseModel
+from utils.models import BaseModel, AbstractCompany
+
+
+class Company(AbstractCompany):
+
+    class Meta:
+        db_table = 'mst_company'
+        verbose_name = verbose_name_plural = "自社情報"
 
 
 class Bank(BaseModel):

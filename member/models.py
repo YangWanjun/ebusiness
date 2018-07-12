@@ -1,27 +1,13 @@
+import datetime
+
 from django.core.validators import RegexValidator
 from django.db import models
+from django.db.models import PROTECT
 from django.utils import timezone
 
 from master.models import Bank, BankBranch
 from utils import constants
-from utils.django_base import BaseModel
-
-
-class Organization(BaseModel):
-    name = models.CharField(blank=False, null=False, max_length=30, verbose_name="組織名")
-    description = models.CharField(max_length=200, blank=True, null=True, verbose_name="概要")
-    parent = models.ForeignKey(
-        "self", related_name='children', blank=True, null=True, on_delete=models.PROTECT, verbose_name="親組織"
-    )
-    org_type = models.CharField(
-        blank=False, null=False, max_length=2, choices=constants.CHOICE_ORG_TYPE, verbose_name="組織類別"
-    )
-
-    class Meta:
-        db_table = 'eb_organization'
-
-    def __str__(self):
-        return self.name
+from utils.models import BaseModel
 
 
 class Member(BaseModel):
@@ -77,8 +63,8 @@ class Member(BaseModel):
     residence_type = models.CharField(
         blank=True, null=True, max_length=20, choices=constants.CHOICE_RESIDENCE_TYPE, verbose_name="在留種類"
     )
-    pay_bank = models.ForeignKey(Bank, blank=True, null=True, on_delete=models.PROTECT, verbose_name="銀行")
-    pay_branch = models.ForeignKey(BankBranch, blank=True, null=True, on_delete=models.PROTECT, verbose_name="銀行支店")
+    pay_bank = models.ForeignKey(Bank, blank=True, null=True, on_delete=PROTECT, verbose_name="銀行")
+    pay_branch = models.ForeignKey(BankBranch, blank=True, null=True, on_delete=PROTECT, verbose_name="銀行支店")
     pay_owner = models.CharField(blank=True, null=True, max_length=20, verbose_name="口座名義")
     pay_owner_kana = models.CharField(blank=True, null=True, max_length=20, verbose_name="口座名義（カナ）")
     pay_account = models.CharField(blank=True, null=True, max_length=20, verbose_name="口座番号")
@@ -86,6 +72,8 @@ class Member(BaseModel):
 
     class Meta:
         db_table = 'eb_member'
+        verbose_name = "社員"
+        verbose_name_plural = "社員一覧"
 
     def __str__(self):
         return self.full_name
@@ -97,3 +85,35 @@ class Member(BaseModel):
     @property
     def address(self):
         return '{}{}'.format(self.address1 or '', self.address2 or '')
+
+
+class Organization(BaseModel):
+    name = models.CharField(max_length=30, blank=False, null=False, verbose_name="組織名")
+    description = models.CharField(max_length=200, blank=True, null=True, verbose_name="概要")
+    org_type = models.CharField(
+        blank=False, null=False, max_length=2, choices=constants.CHOICE_ORG_TYPE, verbose_name="組織類別"
+    )
+    parent = models.ForeignKey(
+        "self", related_name='children', blank=True, null=True, on_delete=PROTECT, verbose_name="親組織"
+    )
+    members = models.ManyToManyField(Member, through='Membership')
+
+    class Meta:
+        db_table = 'eb_organization'
+        verbose_name = "組織"
+        verbose_name_plural = "組織一覧"
+
+    def __str__(self):
+        return self.name
+
+
+class Membership(BaseModel):
+    member = models.ForeignKey(Member, on_delete=PROTECT, verbose_name="社員")
+    organization = models.ForeignKey(Organization, on_delete=PROTECT, verbose_name="組織")
+    start_date = models.DateField(verbose_name="開始日")
+    end_date = models.DateField(default=datetime.date.max, verbose_name="終了日")
+
+    class Meta:
+        db_table = 'eb_membership'
+        verbose_name = "所属"
+        verbose_name_plural = "所属一覧"

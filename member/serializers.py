@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from . import models
-from utils.django_base import BaseModelSerializer
+from utils.rest_base import BaseModelSerializer
 
 
 class MemberSerializer(BaseModelSerializer):

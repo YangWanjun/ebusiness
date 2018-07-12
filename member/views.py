@@ -1,5 +1,5 @@
 from . import models, serializers
-from utils.django_base import BaseModelViewSet
+from utils.rest_base import BaseModelViewSet
 
 
 class MemberViewSet(BaseModelViewSet):

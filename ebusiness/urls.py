@@ -20,7 +20,7 @@ from rest_framework import routers
 
 
 from member import views as member_view
-from business_partner import views as business_partner_api
+from partner import views as business_partner_api
 
 router = routers.DefaultRouter()
 router.register(r'members', member_view.MemberViewSet)

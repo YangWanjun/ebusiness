@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
-    'business_partner.apps.BusinessPartnerConfig',
+    'partner.apps.BusinessPartnerConfig',
     'master.apps.MasterConfig',
     'member.apps.MemberConfig',
 ]

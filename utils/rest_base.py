@@ -9,17 +9,18 @@ from rest_framework.serializers import ModelSerializer
 
 class BaseModelSerializer(ModelSerializer):
 
-    def get_columns(self):
-        columns = []
-        for name, field in self.get_fields().items():
-            is_numeric = isinstance(field, IntegerField)
-            columns.append({
-                'id': name,
-                'numeric': is_numeric,
-                'disablePadding': not is_numeric,
-                'label': field.label,
-            })
-        return columns
+    # def get_columns(self):
+    #     columns = []
+    #     for name, field in self.get_fields().items():
+    #         is_numeric = isinstance(field, IntegerField)
+    #         columns.append({
+    #             'id': name,
+    #             'numeric': is_numeric,
+    #             'disablePadding': not is_numeric,
+    #             'label': field.label,
+    #         })
+    #     return columns
+    pass
 
 
 class MyLimitOffsetPagination(LimitOffsetPagination):
@@ -36,6 +37,32 @@ class MyLimitOffsetPagination(LimitOffsetPagination):
 
 class BaseModelViewSet(ModelViewSet):
     pagination_class = MyLimitOffsetPagination
+    list_display = ()
+    list_display_links = ()
+
+    def get_list_display(self):
+        list_display = self.list_display
+        if not list_display:
+            list_display = ('id',)
+        return list_display
+
+    def get_list_display_links(self):
+        return self.list_display_links
+
+    def get_columns_definition(self, serializer):
+        columns = []
+        list_display = self.get_list_display()
+
+        for name, field in serializer.get_fields().items():
+            is_numeric = isinstance(field, IntegerField)
+            columns.append({
+                'id': name,
+                'numeric': is_numeric,
+                'disablePadding': not is_numeric,
+                'label': field.label,
+                'visible': name in list_display,
+            })
+        return columns
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -43,11 +70,11 @@ class BaseModelViewSet(ModelViewSet):
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            columns = serializer.child.get_columns()
+            columns = self.get_columns_definition(serializer.child)
             return self.get_paginated_response(serializer.data, columns)
 
         serializer = self.get_serializer(queryset, many=True)
-        columns = serializer.child.get_columns()
+        columns = self.get_columns_definition(serializer.child)
         return Response(OrderedDict([
             ('columns', columns or []),
             ('results', serializer.data),

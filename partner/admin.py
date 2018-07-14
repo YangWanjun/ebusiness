@@ -1,3 +1,6 @@
 from django.contrib import admin
 
-# Register your models here.
+
+class PartnerAdmin(admin.ModelAdmin):
+    list_display = None
+    list_display_links = None

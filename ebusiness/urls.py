@@ -24,7 +24,7 @@ from partner import views as business_partner_api
 
 router = routers.DefaultRouter()
 router.register(r'members', member_view.MemberViewSet)
-router.register(r'business-partner', business_partner_api.BusinessPartnerViewSet)
+router.register(r'partners', business_partner_api.BusinessPartnerViewSet)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),

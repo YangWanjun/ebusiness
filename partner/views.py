@@ -5,3 +5,4 @@ from utils.rest_base import BaseModelViewSet
 class BusinessPartnerViewSet(BaseModelViewSet):
     queryset = models.BusinessPartner.objects.all()
     serializer_class = serializers.BusinessPartnerSerializer
+    list_display = ('name', 'president', 'address', 'tel')

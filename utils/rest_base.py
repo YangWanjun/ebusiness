@@ -4,10 +4,10 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.serializers import IntegerField
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import HyperlinkedModelSerializer
 
 
-class BaseModelSerializer(ModelSerializer):
+class BaseModelSerializer(HyperlinkedModelSerializer):
 
     # def get_columns(self):
     #     columns = []
@@ -58,7 +58,7 @@ class BaseModelViewSet(ModelViewSet):
             columns.append({
                 'id': name,
                 'numeric': is_numeric,
-                'disablePadding': not is_numeric,
+                'disablePadding': False,
                 'label': field.label,
                 'visible': name in list_display,
             })

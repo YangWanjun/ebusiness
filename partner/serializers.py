@@ -9,7 +9,7 @@ class BusinessPartnerSerializer(BaseModelSerializer):
 
     class Meta:
         model = models.BusinessPartner
-        fields = ('id', 'name', 'president', 'address', 'tel')
+        fields = ('id', 'name', 'president', 'address', 'tel', 'url')
 
     def get_address(self, obj):
         return obj.address

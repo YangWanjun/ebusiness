@@ -1,10 +1,10 @@
 from django.db import models
 
 from utils import constants
-from utils.models import AbstractCompany
+from utils.models import AbstractCompany, AbstractMember
 
 
-class BusinessPartner(AbstractCompany):
+class Partner(AbstractCompany):
     employee_count = models.IntegerField(blank=True, null=True, verbose_name="従業員数")
     sales_amount = models.BigIntegerField(blank=True, null=True, verbose_name="売上高")
     payment_month = models.CharField(
@@ -19,6 +19,15 @@ class BusinessPartner(AbstractCompany):
     comment = models.CharField(max_length=250, blank=True, null=True, verbose_name="備考")
 
     class Meta:
-        db_table = 'eb_business_partner'
+        db_table = 'bp_partner'
         verbose_name = "協力会社"
         verbose_name_plural = '協力会社一覧'
+
+
+class BpMember(AbstractMember):
+    company = models.ForeignKey(Partner, on_delete=models.PROTECT, verbose_name='協力会社')
+
+    class Meta:
+        db_table = 'bp_member'
+        verbose_name = "ＢＰ社員"
+        verbose_name_plural = 'ＢＰ社員一覧'

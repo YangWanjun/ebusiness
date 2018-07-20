@@ -4,11 +4,11 @@ from . import models
 from utils.rest_base import BaseModelSerializer
 
 
-class BusinessPartnerSerializer(BaseModelSerializer):
+class PartnerSerializer(BaseModelSerializer):
     address = serializers.SerializerMethodField(label='所在地')
 
     class Meta:
-        model = models.BusinessPartner
+        model = models.Partner
         fields = ('id', 'name', 'president', 'address', 'tel', 'url')
 
     def get_address(self, obj):

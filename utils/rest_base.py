@@ -39,6 +39,7 @@ class BaseModelViewSet(ModelViewSet):
     pagination_class = MyLimitOffsetPagination
     list_display = ()
     list_display_links = ()
+    search_fields = ()
 
     def get_list_display(self):
         list_display = self.list_display
@@ -49,9 +50,13 @@ class BaseModelViewSet(ModelViewSet):
     def get_list_display_links(self):
         return self.list_display_links
 
+    def get_search_fields(self):
+        return self.search_fields
+
     def get_columns_definition(self, serializer):
         columns = []
         list_display = self.get_list_display()
+        search_fields = self.get_search_fields()
 
         for name, field in serializer.get_fields().items():
             is_numeric = isinstance(field, IntegerField)
@@ -61,6 +66,7 @@ class BaseModelViewSet(ModelViewSet):
                 'disablePadding': False,
                 'label': field.label,
                 'visible': name in list_display,
+                'searchable': name in search_fields,
             })
         return columns
 

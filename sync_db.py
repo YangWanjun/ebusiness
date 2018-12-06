@@ -1,33 +1,24 @@
-# coding: utf-8
 import os
 import sys
-import getpass
-import MySQLdb
 import django
 from django.core.management import call_command
+from django.db import connection
 
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ebusiness.settings")
 django.setup()
 
-if sys.platform == 'win32' and getpass.getuser() == 'EB097':
-    user = 'root'
-    password = 'root'
-    host = 'localhost'
-elif sys.platform in ('linux2', 'linux'):
-    user = 'root'
-    password = os.environ['MYSQL_ENV_MYSQL_ROOT_PASSWORD']
-    host = os.environ['MYSQL_PORT_3306_TCP_ADDR']
-else:
-    user = 'root'
-    password = 'root'
-    host = '127.0.0.1'
 
+def main(argv):
+    if '-f' in argv:
+        remove_files_only = True
+    else:
+        remove_files_only = False
 
-def main():
-    del_migration_records()
     del_migration_files()
-    migrate()
+    if remove_files_only is False:
+        del_migration_records()
+        migrate()
 
 
 def migrate():
@@ -37,18 +28,9 @@ def migrate():
 
 
 def del_migration_records():
-    con = MySQLdb.connect(user=user, passwd=password, db='eb_sales_new', host=host)
-    cursor = con.cursor()
-    try:
+    with connection.cursor() as cursor:
         cnt = cursor.execute("delete from django_migrations")
         print('EXEC: delete from django_migrations. %s rows deleted' % cnt)
-        con.commit()
-    except Exception as e:
-        con.roolback()
-        raise e
-    finally:
-        cursor.close()
-        con.close()
 
 
 def del_migration_files():
@@ -64,4 +46,4 @@ def del_migration_files():
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])

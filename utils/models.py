@@ -105,3 +105,7 @@ class AbstractMember(BaseModel):
 
     class Meta:
         abstract = True
+
+    @property
+    def address(self):
+        return '{}{}'.format(self.address1 or '', self.address2 or '')

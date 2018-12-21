@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'partner.apps.PartnerConfig',
     'master.apps.MasterConfig',
     'member.apps.MemberConfig',
+    'turnover.apps.TurnoverConfig',
 ]
 
 MIDDLEWARE = [
@@ -88,7 +89,7 @@ if sys.platform == 'darwin':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'eb_sales_new',
+            'NAME': 'eb_sales',
             'USER': 'root',
             'PASSWORD': 'root',
             'HOST': '127.0.0.1',
@@ -99,10 +100,10 @@ elif sys.platform == 'win32':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'eb_sales_new',
+            'NAME': 'eb_sales',
             'USER': 'root',
-            'PASSWORD': 'root',
-            'HOST': '',
+            'PASSWORD': 'eb2016',
+            'HOST': '54.65.139.168',
             'PORT': '',
         },
     }

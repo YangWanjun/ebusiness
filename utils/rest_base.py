@@ -59,8 +59,19 @@ class BaseModelViewSet(ModelViewSet):
         search_fields = self.get_search_fields()
         db_columns = [f.name for f in serializer.Meta.model._meta.fields]
 
+        # ソート項目を取得する
+        def get_sort_field(n, s):
+            if n in db_columns:
+                return n
+            elif hasattr(s, 'get_' + n):
+                method = getattr(s, 'get_' + n)
+                if hasattr(method, 'sort_field'):
+                    return getattr(method, 'sort_field')
+            return None
+
         for name, field in serializer.get_fields().items():
             is_numeric = isinstance(field, IntegerField)
+            sort_field = get_sort_field(name, serializer)
             columns.append({
                 'id': name,
                 'numeric': is_numeric,
@@ -68,7 +79,8 @@ class BaseModelViewSet(ModelViewSet):
                 'label': field.label,
                 'visible': name in list_display,
                 'searchable': name in search_fields,
-                'sortable': name in db_columns
+                'sortable': True if sort_field else False,
+                'sort_field': sort_field,
             })
         return columns
 

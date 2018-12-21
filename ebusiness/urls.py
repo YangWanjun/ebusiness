@@ -21,10 +21,12 @@ from rest_framework import routers
 
 from member import views as member_view
 from partner import views as partner_api
+from turnover import views as turnover_api
 
 router = routers.DefaultRouter()
 router.register(r'members', member_view.MemberViewSet)
 router.register(r'partners', partner_api.PartnerViewSet)
+router.register(r'turnover/monthly', turnover_api.TurnoverMonthlyViewSet)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),

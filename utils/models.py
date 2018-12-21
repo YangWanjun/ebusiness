@@ -26,6 +26,14 @@ class BaseModel(models.Model):
         abstract = True
 
 
+class BaseView(models.Model):
+    objects = DefaultManager()
+
+    class Meta:
+        abstract = True
+        default_permissions = ()
+
+
 class AbstractCompany(BaseModel):
     name = models.CharField(max_length=30, blank=False, null=False, unique=True, verbose_name="会社名")
     kana = models.CharField(blank=True, null=True, max_length=30, verbose_name="フリカナ")

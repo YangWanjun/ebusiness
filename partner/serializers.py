@@ -9,7 +9,9 @@ class PartnerSerializer(BaseModelSerializer):
 
     class Meta:
         model = models.Partner
-        fields = ('id', 'name', 'president', 'address', 'tel', 'url')
+        fields = ('id', 'name', 'president', 'address', 'address1', 'tel', 'url')
 
     def get_address(self, obj):
         return obj.address
+
+    get_address.sort_field = 'address1'

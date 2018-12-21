@@ -17,6 +17,6 @@ class MemberFilter(django_filters.FilterSet):
 class MemberViewSet(BaseModelViewSet):
     queryset = models.Member.objects.all()
     serializer_class = serializers.MemberSerializer
-    list_display = ('full_name', 'gender', 'address')
+    list_display = ('full_name', 'gender', 'address', 'join_date')
     filter_fields = ('last_name', 'first_name')
     filter_class = MemberFilter

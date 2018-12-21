@@ -7,11 +7,22 @@ from utils.rest_base import BaseModelSerializer
 class MemberSerializer(BaseModelSerializer):
     full_name = serializers.SerializerMethodField(label='名前')
     address = serializers.SerializerMethodField(label='住所')
-    gender = serializers.CharField(source='get_gender_display', label='性別')
+    gender = serializers.CharField(source='get_gender_display', read_only=True, label='性別')
 
     class Meta:
         model = models.Member
-        fields = ('id', 'full_name', 'last_name', 'gender', 'address', 'address1', 'birthday', 'join_date', 'url')
+        fields = (
+            'id',
+            'full_name',
+            'last_name',
+            'first_name',
+            'gender',
+            'address',
+            'address1',
+            'birthday',
+            'join_date',
+            'url'
+        )
 
     def get_full_name(self, obj):
         return obj.full_name

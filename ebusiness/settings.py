@@ -89,7 +89,7 @@ if sys.platform == 'darwin':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'eb_sales',
+            'NAME': 'eb_sales_new',
             'USER': 'root',
             'PASSWORD': 'root',
             'HOST': '127.0.0.1',
@@ -100,7 +100,7 @@ elif sys.platform == 'win32':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'eb_sales',
+            'NAME': 'eb_sales_new',
             'USER': 'root',
             'PASSWORD': 'root',
             'HOST': '',
@@ -118,7 +118,7 @@ else:
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
-        'rest_framework.filters.OrderingFilter'
+        'utils.filters.CustomFilter'
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 25

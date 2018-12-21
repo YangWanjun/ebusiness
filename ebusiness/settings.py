@@ -102,8 +102,8 @@ elif sys.platform == 'win32':
             'ENGINE': 'django.db.backends.mysql',
             'NAME': 'eb_sales',
             'USER': 'root',
-            'PASSWORD': 'eb2016',
-            'HOST': '54.65.139.168',
+            'PASSWORD': 'root',
+            'HOST': '',
             'PORT': '',
         },
     }

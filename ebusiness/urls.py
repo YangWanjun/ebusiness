@@ -32,4 +32,6 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api-auth/', include('rest_framework.urls')),
     url(r'^api/', include(router.urls)),
+
+    url(r'^api/turnover/monthly/chart', turnover_api.TurnoverMonthlyChartView.as_view()),
 ]

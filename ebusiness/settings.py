@@ -26,10 +26,11 @@ SECRET_KEY = 'vh(=pym9m$%5ehc(2voz&i!iq^o%w@6utjprnj@!lu9ps6ap(='
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.99.100']
 CORS_ORIGIN_WHITELIST = (
     'localhost:3000',
     '127.0.0.1:3000',
+    '192.168.99.100:8001',
 )
 
 # Application definition
@@ -105,6 +106,17 @@ elif sys.platform == 'win32':
             'PASSWORD': 'root',
             'HOST': '',
             'PORT': '',
+        },
+    }
+elif sys.platform == 'linux':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'eb_sales',
+            'USER': 'root',
+            'PASSWORD': os.environ['MYSQL_ENV_MYSQL_ROOT_PASSWORD'],
+            'HOST': os.environ['MYSQL_PORT_3306_TCP_ADDR'],
+            'PORT': os.environ['MYSQL_PORT_3306_TCP_PORT'],
         },
     }
 else:

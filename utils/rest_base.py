@@ -1,5 +1,6 @@
 from collections import OrderedDict
 
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.serializers import IntegerField
 from rest_framework.pagination import LimitOffsetPagination
@@ -103,3 +104,7 @@ class BaseModelViewSet(ModelViewSet):
     def get_paginated_response(self, data, columns=None):
         assert self.paginator is not None
         return self.paginator.get_paginated_response(data, columns)
+
+
+class BaseApiView(APIView):
+    pass

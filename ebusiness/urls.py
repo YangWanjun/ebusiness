@@ -34,4 +34,5 @@ urlpatterns = [
     url(r'^api/', include(router.urls)),
 
     url(r'^api/turnover/monthly/chart', turnover_api.TurnoverMonthlyChartView.as_view()),
+    url(r'^api/turnover/yearly/chart', turnover_api.TurnoverYearlyChartView.as_view()),
 ]

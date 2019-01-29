@@ -7,3 +7,10 @@ class TurnoverMonthlySerializer(BaseModelSerializer):
     class Meta:
         model = models.TurnoverMonthly
         fields = '__all__'
+
+
+class TurnoverYearlySerializer(BaseModelSerializer):
+
+    class Meta:
+        model = models.TurnoverYearly
+        fields = '__all__'

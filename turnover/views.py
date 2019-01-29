@@ -18,3 +18,12 @@ class TurnoverMonthlyChartView(BaseApiView):
     def get(self, request):
         data = biz.get_turnover_monthly_chart()
         return Response({'data': data})
+
+
+class TurnoverYearlyChartView(BaseApiView):
+    """年間売上情報を表示する
+    """
+
+    def get(self, request):
+        data = biz.get_turnover_yearly_chart()
+        return Response({'data': data})

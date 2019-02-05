@@ -44,18 +44,22 @@ class Member(AbstractMember):
 
 
 class Organization(BaseModel):
-    name = models.CharField(max_length=30, blank=False, null=False, verbose_name="組織名")
+    name = models.CharField(max_length=30, blank=False, null=False, verbose_name="部署名")
     description = models.CharField(max_length=200, blank=True, null=True, verbose_name="概要")
-    org_type = models.CharField(
-        blank=False, null=False, max_length=2, choices=constants.CHOICE_ORG_TYPE, verbose_name="組織類別"
-    )
+    is_on_sales = models.BooleanField(blank=False, null=False, default=False, verbose_name="営業対象")
+    is_active = models.BooleanField(default=False, verbose_name="社員に表示")
     parent = models.ForeignKey(
-        "self", related_name='children', blank=True, null=True, on_delete=PROTECT, verbose_name="親組織"
+        "self", related_name='children', blank=True, null=True, on_delete=models.PROTECT,
+        verbose_name="親組織"
     )
-    members = models.ManyToManyField(Member, through='Membership')
+    org_type = models.CharField(
+        max_length=2, blank=False, null=False, choices=constants.CHOICE_ORG_TYPE,
+        verbose_name="組織類別"
+    )
 
     class Meta:
-        db_table = 'eb_organization'
+        managed = False
+        db_table = 'eb_section'
         verbose_name = "組織"
         verbose_name_plural = "組織一覧"
 

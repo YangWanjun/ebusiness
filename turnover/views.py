@@ -27,3 +27,10 @@ class TurnoverYearlyChartView(BaseApiView):
     def get(self, request):
         data = biz.get_turnover_yearly_chart()
         return Response({'data': data})
+
+
+class TurnoverMonthlyByDivisionChartView(BaseApiView):
+
+    def get(self, request):
+        data = biz.get_turnover_monthly_by_department_chart()
+        return Response({'data': data})

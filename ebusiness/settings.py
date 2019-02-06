@@ -26,7 +26,7 @@ SECRET_KEY = 'vh(=pym9m$%5ehc(2voz&i!iq^o%w@6utjprnj@!lu9ps6ap(='
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.99.100']
+ALLOWED_HOSTS = ['192.168.99.100', '127.0.0.1']
 CORS_ORIGIN_WHITELIST = (
     'localhost:3000',
     '127.0.0.1:3000',
@@ -90,7 +90,7 @@ if sys.platform == 'darwin':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'eb_sales_new',
+            'NAME': 'eb_sales',
             'USER': 'root',
             'PASSWORD': 'root',
             'HOST': '127.0.0.1',
@@ -101,7 +101,7 @@ elif sys.platform == 'win32':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'eb_sales_new',
+            'NAME': 'eb_sales',
             'USER': 'root',
             'PASSWORD': 'root',
             'HOST': '',

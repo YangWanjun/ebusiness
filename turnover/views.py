@@ -48,4 +48,4 @@ class TurnoverClientsByMonthViewSet(BaseModelViewSet):
         today = datetime.date.today()
         year = self.request.GET.get('year', today.strftime('%Y'))
         month = self.request.GET.get('month', today.strftime('%m'))
-        return models.TurnoverClientsByMonth.objects.filter(year=year, month=month)
+        return self.queryset.filter(year=year, month=month)

@@ -12,9 +12,7 @@ class TurnoverMonthlySerializer(BaseModelSerializer):
         fields = '__all__'
 
     def get_url(self, obj):
-        return '/turnover/monthly/{pk}/?year={year}&month={month}'.format(
-            pk=obj.pk, year=obj.year, month=obj.month,
-        )
+        return '/turnover/monthly/{pk}/'.format(pk=obj.pk)
 
 
 class TurnoverYearlySerializer(BaseModelSerializer):

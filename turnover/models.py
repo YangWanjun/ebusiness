@@ -71,3 +71,24 @@ class TurnoverMonthlyByOrganization(BaseView):
 
     def __str__(self):
         return '{}年{}月'.format(self.year, self.month)
+
+
+class TurnoverClientsByMonth(BaseView):
+    client_name = models.CharField(max_length=30, verbose_name="会社名")
+    year = models.CharField(max_length=4, verbose_name="請求年")
+    month = models.CharField(max_length=2, verbose_name="請求月")
+    turnover_amount = models.IntegerField(verbose_name="売上（税別）")
+    tax_amount = models.IntegerField(verbose_name="税金")
+    expenses_amount = models.IntegerField(verbose_name="精算")
+    amount = models.IntegerField(verbose_name="合計")
+
+    class Meta:
+        managed = False
+        db_table = 'v_turnover_clients_by_month'
+        ordering = ('client_name',)
+        default_permissions = ()
+        verbose_name = "お客様別売上"
+        verbose_name_plural = "お客様別売上一覧"
+
+    def __str__(self):
+        return self.client_name

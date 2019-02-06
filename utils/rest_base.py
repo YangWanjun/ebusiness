@@ -5,22 +5,11 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.serializers import IntegerField
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
-from rest_framework.serializers import HyperlinkedModelSerializer
+from rest_framework.serializers import ModelSerializer
 
 
-class BaseModelSerializer(HyperlinkedModelSerializer):
+class BaseModelSerializer(ModelSerializer):
 
-    # def get_columns(self):
-    #     columns = []
-    #     for name, field in self.get_fields().items():
-    #         is_numeric = isinstance(field, IntegerField)
-    #         columns.append({
-    #             'id': name,
-    #             'numeric': is_numeric,
-    #             'disablePadding': not is_numeric,
-    #             'label': field.label,
-    #         })
-    #     return columns
     pass
 
 
@@ -73,8 +62,13 @@ class BaseModelViewSet(ModelViewSet):
         for name, field in serializer.get_fields().items():
             is_numeric = isinstance(field, IntegerField)
             sort_field = get_sort_field(name, serializer)
+            if self.get_list_display_links() and name in self.get_list_display_links():
+                url_field = 'url'
+            else:
+                url_field = None
             columns.append({
                 'id': name,
+                'urlField': url_field,
                 'numeric': is_numeric,
                 'disablePadding': False,
                 'label': field.label,

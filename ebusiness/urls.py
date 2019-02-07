@@ -28,6 +28,7 @@ router.register(r'members', member_view.MemberViewSet)
 router.register(r'partners', partner_api.PartnerViewSet)
 router.register(r'turnover/monthly', turnover_api.TurnoverMonthlyViewSet)
 router.register(r'turnover/clients_by_month', turnover_api.TurnoverClientsByMonthViewSet)
+router.register(r'turnover/client_by_month', turnover_api.TurnoverClientByMonthViewSet)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),

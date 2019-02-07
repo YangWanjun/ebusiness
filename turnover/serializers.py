@@ -23,7 +23,18 @@ class TurnoverYearlySerializer(BaseModelSerializer):
 
 
 class TurnoverClientsByMonthSerializer(BaseModelSerializer):
+    url = serializers.SerializerMethodField()
 
     class Meta:
         model = models.TurnoverClientsByMonth
+        fields = '__all__'
+
+    def get_url(self, obj):
+        return '/turnover/month/{year}{month}/client/{pk}/'.format(pk=obj.pk, year=obj.year, month=obj.month)
+
+
+class TurnoverClientByMonthSerializer(BaseModelSerializer):
+
+    class Meta:
+        model = models.TurnoverClientByMonth
         fields = '__all__'

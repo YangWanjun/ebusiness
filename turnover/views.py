@@ -52,6 +52,7 @@ class TurnoverClientsByMonthViewSet(BaseModelViewSet):
     queryset = models.TurnoverClientsByMonth.objects.all()
     serializer_class = serializers.TurnoverClientsByMonthSerializer
     list_display = ('client_name', 'turnover_amount', 'tax_amount', 'expenses_amount', 'amount')
+    list_display_links = ('client_name',)
     filter_fields = ('client_name',)
     filter_class = TurnoverClientsByMonthFilter
 
@@ -60,3 +61,30 @@ class TurnoverClientsByMonthViewSet(BaseModelViewSet):
         year = self.request.GET.get('year', today.strftime('%Y'))
         month = self.request.GET.get('month', today.strftime('%m'))
         return self.queryset.filter(year=year, month=month)
+
+
+class TurnoverClientByMonthFilter(django_filters.FilterSet):
+
+   class Meta:
+        model = models.TurnoverClientByMonth
+        fields = {
+            'client_name': ['icontains'],
+        }
+
+
+class TurnoverClientByMonthViewSet(BaseModelViewSet):
+    queryset = models.TurnoverClientByMonth.objects.all()
+    serializer_class = serializers.TurnoverClientByMonthSerializer
+    list_display = ('project_name', 'turnover_amount', 'tax_amount', 'expenses_amount', 'amount')
+    filter_fields = ('project_name',)
+    filter_class = TurnoverClientByMonthFilter
+
+    def get_queryset(self):
+        today = datetime.date.today()
+        year = self.request.GET.get('year', today.strftime('%Y'))
+        month = self.request.GET.get('month', today.strftime('%m'))
+        client_id = self.request.GET.get('client_id', None)
+        if client_id:
+            return self.queryset.filter(year=year, month=month, client_id=client_id)
+        else:
+            return models.TurnoverClientByMonth.objects.none()

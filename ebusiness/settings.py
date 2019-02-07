@@ -133,7 +133,7 @@ REST_FRAMEWORK = {
         'utils.filters.CustomFilter'
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 25
+    'PAGE_SIZE': 15
 }
 
 # Password validation

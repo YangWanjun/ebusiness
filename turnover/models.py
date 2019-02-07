@@ -92,3 +92,26 @@ class TurnoverClientsByMonth(BaseView):
 
     def __str__(self):
         return self.client_name
+
+
+class TurnoverClientByMonth(BaseView):
+    project_name = models.CharField(max_length=50, verbose_name="案件名")
+    client_id = models.PositiveIntegerField(verbose_name="会社ID")
+    client_name = models.CharField(max_length=30, verbose_name="会社名")
+    year = models.CharField(max_length=4, verbose_name="請求年")
+    month = models.CharField(max_length=2, verbose_name="請求月")
+    turnover_amount = models.IntegerField(verbose_name="売上（税別）")
+    tax_amount = models.IntegerField(verbose_name="税金")
+    expenses_amount = models.IntegerField(verbose_name="精算")
+    amount = models.IntegerField(verbose_name="合計")
+
+    class Meta:
+        managed = False
+        db_table = 'v_turnover_client_by_month'
+        ordering = ('project_name',)
+        default_permissions = ()
+        verbose_name = "案件別売上"
+        verbose_name_plural = "案件別売上一覧"
+
+    def __str__(self):
+        return self.project_name

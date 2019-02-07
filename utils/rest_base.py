@@ -30,6 +30,7 @@ class BaseModelViewSet(ModelViewSet):
     list_display = ()
     list_display_links = ()
     filter_fields = ()
+    filter_class = None
 
     def get_list_display(self):
         list_display = self.list_display
@@ -42,6 +43,14 @@ class BaseModelViewSet(ModelViewSet):
 
     def get_search_fields(self):
         return self.filter_fields
+
+    def get_search_type(self, field_name):
+        if self.filter_class:
+            fields = self.filter_class.Meta.fields
+            lookups = fields.get(field_name)
+            return lookups[0] if lookups else None
+        else:
+            return None
 
     def get_columns_definition(self, serializer):
         columns = []
@@ -74,6 +83,7 @@ class BaseModelViewSet(ModelViewSet):
                 'label': field.label,
                 'visible': name in list_display,
                 'searchable': name in search_fields,
+                'searchType': self.get_search_type(name),
                 'sortable': True if sort_field else False,
                 'sort_field': sort_field,
             })

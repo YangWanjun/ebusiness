@@ -1,4 +1,5 @@
 import datetime
+import django_filters
 from rest_framework.response import Response
 
 from . import models, serializers, biz
@@ -38,11 +39,21 @@ class TurnoverMonthlyByDivisionChartView(BaseApiView):
         return Response({'data': data})
 
 
+class TurnoverClientsByMonthFilter(django_filters.FilterSet):
+
+   class Meta:
+        model = models.TurnoverClientsByMonth
+        fields = {
+            'client_name': ['icontains'],
+        }
+
+
 class TurnoverClientsByMonthViewSet(BaseModelViewSet):
     queryset = models.TurnoverClientsByMonth.objects.all()
     serializer_class = serializers.TurnoverClientsByMonthSerializer
     list_display = ('client_name', 'turnover_amount', 'tax_amount', 'expenses_amount', 'amount')
     filter_fields = ('client_name',)
+    filter_class = TurnoverClientsByMonthFilter
 
     def get_queryset(self):
         today = datetime.date.today()

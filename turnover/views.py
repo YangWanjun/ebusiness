@@ -68,7 +68,7 @@ class TurnoverClientByMonthFilter(django_filters.FilterSet):
    class Meta:
         model = models.TurnoverClientByMonth
         fields = {
-            'client_name': ['icontains'],
+            'project_name': ['icontains'],
         }
 
 

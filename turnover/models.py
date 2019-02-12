@@ -1,6 +1,7 @@
 from django.db import models
 
 from member.models import Organization
+from project.models import Client
 from utils.models import BaseView
 
 
@@ -49,11 +50,11 @@ class TurnoverMonthlyByOrganization(BaseView):
     year = models.CharField(max_length=4, verbose_name="請求年")
     month = models.CharField(max_length=2, verbose_name="請求月")
     division = models.ForeignKey(
-        Organization, null=True, on_delete=models.PROTECT, related_name='division_monthly_turnover_set',
+        Organization, null=True, on_delete=models.DO_NOTHING, related_name='division_monthly_turnover_set',
         verbose_name="事業部"
     )
     organization = models.ForeignKey(
-        Organization, null=True, on_delete=models.PROTECT, related_name='organization_monthly_turnover_set',
+        Organization, null=True, on_delete=models.DO_NOTHING, related_name='organization_monthly_turnover_set',
         verbose_name="部署"
     )
     turnover_amount = models.IntegerField(verbose_name="売上（税別）")
@@ -96,7 +97,7 @@ class TurnoverClientsByMonth(BaseView):
 
 class TurnoverClientByMonth(BaseView):
     project_name = models.CharField(max_length=50, verbose_name="案件名")
-    client_id = models.PositiveIntegerField(verbose_name="会社ID")
+    client = models.ForeignKey(Client, on_delete=models.DO_NOTHING, verbose_name="会社ID")
     client_name = models.CharField(max_length=30, verbose_name="会社名")
     year = models.CharField(max_length=4, verbose_name="請求年")
     month = models.CharField(max_length=2, verbose_name="請求月")

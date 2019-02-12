@@ -76,6 +76,11 @@ CHOICE_TAX_RATE = (
     (Decimal('0.08'), "8％"),
     (Decimal('0.10'), "10％"),
 )
+CHOICE_DECIMAL_TYPE = (
+    ('0', "四捨五入"),
+    ('1', "切り捨て"),
+    ('2', '切り上げ'),
+)
 
 DICT_MONTH_EN = {
     '01': 'Jan',

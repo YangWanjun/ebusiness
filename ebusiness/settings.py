@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'partner.apps.PartnerConfig',
+    'project.apps.ProjectConfig',
     'master.apps.MasterConfig',
     'member.apps.MemberConfig',
     'turnover.apps.TurnoverConfig',

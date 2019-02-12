@@ -21,11 +21,13 @@ from rest_framework import routers
 
 from member import views as member_view
 from partner import views as partner_api
+from project import views as project_api
 from turnover import views as turnover_api
 
 router = routers.DefaultRouter()
 router.register(r'members', member_view.MemberViewSet)
 router.register(r'partners', partner_api.PartnerViewSet)
+router.register(r'client', project_api.ClientViewSet)
 router.register(r'turnover/monthly', turnover_api.TurnoverMonthlyViewSet)
 router.register(r'turnover/clients_by_month', turnover_api.TurnoverClientsByMonthViewSet)
 router.register(r'turnover/client_by_month', turnover_api.TurnoverClientByMonthViewSet)

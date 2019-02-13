@@ -1,7 +1,9 @@
 from collections import OrderedDict
 
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import GenericViewSet
+from rest_framework.mixins import ListModelMixin, \
+    RetrieveModelMixin, CreateModelMixin, UpdateModelMixin, DestroyModelMixin
 from rest_framework.serializers import IntegerField
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
@@ -25,8 +27,7 @@ class MyLimitOffsetPagination(LimitOffsetPagination):
         ]))
 
 
-class BaseModelViewSet(ModelViewSet):
-    pagination_class = MyLimitOffsetPagination
+class BaseListModelMixin(ListModelMixin):
     list_display = ()
     list_display_links = ()
     filter_fields = ()
@@ -104,6 +105,25 @@ class BaseModelViewSet(ModelViewSet):
             ('columns', columns or []),
             ('results', serializer.data),
         ]))
+
+
+class BaseReadOnlyModelViewSet(RetrieveModelMixin,
+                               BaseListModelMixin,
+                               GenericViewSet):
+    pagination_class = MyLimitOffsetPagination
+
+    def get_paginated_response(self, data, columns=None):
+        assert self.paginator is not None
+        return self.paginator.get_paginated_response(data, columns)
+
+
+class BaseModelViewSet(CreateModelMixin,
+                       RetrieveModelMixin,
+                       UpdateModelMixin,
+                       DestroyModelMixin,
+                       BaseListModelMixin,
+                       GenericViewSet):
+    pagination_class = MyLimitOffsetPagination
 
     def get_paginated_response(self, data, columns=None):
         assert self.paginator is not None

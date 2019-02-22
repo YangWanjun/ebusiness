@@ -16,7 +16,7 @@ class TurnoverMonthly(BaseView):
     expenses_amount = models.IntegerField(verbose_name="精算")
     amount = models.IntegerField(verbose_name="合計")
     profit_amount = models.IntegerField(verbose_name="粗利")
-    profit_rate = models.DecimalField(max_digits=3, decimal_places=1, verbose_name="利率")
+    profit_rate = models.DecimalField(max_digits=4, decimal_places=1, verbose_name="利率")
 
     class Meta:
         managed = False
@@ -38,7 +38,7 @@ class TurnoverYearly(BaseView):
     expenses_amount = models.IntegerField(verbose_name="精算")
     amount = models.IntegerField(verbose_name="合計")
     profit_amount = models.IntegerField(verbose_name="粗利")
-    profit_rate = models.DecimalField(max_digits=3, decimal_places=1, verbose_name="利率")
+    profit_rate = models.DecimalField(max_digits=4, decimal_places=1, verbose_name="利率")
 
     class Meta:
         managed = False
@@ -69,7 +69,7 @@ class TurnoverMonthlyByOrganization(BaseView):
     expenses_amount = models.IntegerField(verbose_name="精算")
     amount = models.IntegerField(verbose_name="合計")
     profit_amount = models.IntegerField(verbose_name="粗利")
-    profit_rate = models.DecimalField(max_digits=3, decimal_places=1, verbose_name="利率")
+    profit_rate = models.DecimalField(max_digits=4, decimal_places=1, verbose_name="利率")
 
     class Meta:
         managed = False
@@ -93,7 +93,7 @@ class TurnoverClientsByMonth(BaseView):
     expenses_amount = models.IntegerField(verbose_name="精算")
     amount = models.IntegerField(verbose_name="合計")
     profit_amount = models.IntegerField(verbose_name="粗利")
-    profit_rate = models.DecimalField(max_digits=3, decimal_places=1, verbose_name="利率")
+    profit_rate = models.DecimalField(max_digits=4, decimal_places=1, verbose_name="利率")
 
     class Meta:
         managed = False
@@ -119,7 +119,7 @@ class TurnoverClientByMonth(BaseView):
     expenses_amount = models.IntegerField(verbose_name="精算")
     amount = models.IntegerField(verbose_name="合計")
     profit_amount = models.IntegerField(verbose_name="粗利")
-    profit_rate = models.DecimalField(max_digits=3, decimal_places=1, verbose_name="利率")
+    profit_rate = models.DecimalField(max_digits=4, decimal_places=1, verbose_name="利率")
 
     class Meta:
         managed = False
@@ -131,3 +131,9 @@ class TurnoverClientByMonth(BaseView):
 
     def __str__(self):
         return self.project_name
+
+
+class TurnoverMember(BaseView):
+    name = models.CharField(max_length=50, verbose_name="社員")
+    organization = models.ForeignKey(Organization, db_column='member_section_id', verbose_name="所属")
+    # project = models.ForeignKey(Pro)

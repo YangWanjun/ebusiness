@@ -26,7 +26,7 @@ select v.year
                         ) d1
                 ) d2 
                where m1 < current_date()
-			   order by m1
+               order by m1
   ) T on T.year = v.year and T.month = v.month*/
  where concat(v.year, v.month) >= date_format(date_add(current_date(), interval -1 year), '%Y%m')
  group by division_id, v.year, v.month

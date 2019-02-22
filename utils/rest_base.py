@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.mixins import ListModelMixin, \
     RetrieveModelMixin, CreateModelMixin, UpdateModelMixin, DestroyModelMixin
-from rest_framework.serializers import IntegerField
+from rest_framework.serializers import IntegerField, DecimalField
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer
@@ -70,7 +70,7 @@ class BaseListModelMixin(ListModelMixin):
             return None
 
         for name, field in serializer.get_fields().items():
-            is_numeric = isinstance(field, IntegerField)
+            is_numeric = isinstance(field, (IntegerField, DecimalField))
             sort_field = get_sort_field(name, serializer)
             if self.get_list_display_links() and name in self.get_list_display_links():
                 url_field = 'url'

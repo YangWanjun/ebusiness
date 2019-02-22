@@ -22,17 +22,17 @@ BEGIN
         SELECT s1.id into ret_value 
           FROM eb_section s1
           join eb_section s2 on s2.is_deleted = 0 and s1.parent_id = s2.id
-		 where s1.is_deleted = 0
+         where s1.is_deleted = 0
            and s1.id = in_organization_id;
-	ELSEIF tmp_org_type = '03' THEN
+    ELSEIF tmp_org_type = '03' THEN
         -- 課の場合
         SELECT s2.id into ret_value 
           FROM eb_section s1
           JOIN eb_section s2 on s2.is_deleted = 0 and s1.parent_id = s2.id
           JOIN eb_section s3 on s3.is_deleted = 0 and s2.parent_id = s3.id
-		 where s1.is_deleted = 0
+         where s1.is_deleted = 0
            and s1.id = in_organization_id;
-	ELSE
+    ELSE
         SET ret_value = in_organization_id;
     END IF;
     

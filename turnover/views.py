@@ -9,7 +9,10 @@ from utils.rest_base import BaseReadOnlyModelViewSet, BaseApiView
 class TurnoverMonthlyViewSet(BaseReadOnlyModelViewSet):
     queryset = models.TurnoverMonthly.objects.all()
     serializer_class = serializers.TurnoverMonthlySerializer
-    list_display = ('ym', 'turnover_amount', 'tax_amount', 'expenses_amount', 'amount')
+    list_display = (
+        'ym', 'cost', 'turnover_amount', 'tax_amount', 'expenses_amount', 'amount',
+        'profit_amount', 'profit_rate'
+    )
     list_display_links = ('ym',)
     filter_fields = ('year', 'month')
 
@@ -51,7 +54,10 @@ class TurnoverClientsByMonthFilter(django_filters.FilterSet):
 class TurnoverClientsByMonthViewSet(BaseReadOnlyModelViewSet):
     queryset = models.TurnoverClientsByMonth.objects.all()
     serializer_class = serializers.TurnoverClientsByMonthSerializer
-    list_display = ('client_name', 'turnover_amount', 'tax_amount', 'expenses_amount', 'amount')
+    list_display = (
+        'client_name', 'cost', 'turnover_amount', 'tax_amount', 'expenses_amount', 'amount',
+        'profit_amount', 'profit_rate'
+    )
     list_display_links = ('client_name',)
     filter_fields = ('client_name',)
     filter_class = TurnoverClientsByMonthFilter
@@ -75,7 +81,10 @@ class TurnoverClientByMonthFilter(django_filters.FilterSet):
 class TurnoverClientByMonthViewSet(BaseReadOnlyModelViewSet):
     queryset = models.TurnoverClientByMonth.objects.all()
     serializer_class = serializers.TurnoverClientByMonthSerializer
-    list_display = ('project_name', 'turnover_amount', 'tax_amount', 'expenses_amount', 'amount')
+    list_display = (
+        'project_name', 'cost', 'turnover_amount', 'tax_amount', 'expenses_amount', 'amount',
+        'profit_amount', 'profit_rate'
+    )
     filter_fields = ('project_name',)
     filter_class = TurnoverClientByMonthFilter
 

@@ -10,10 +10,13 @@ class TurnoverMonthly(BaseView):
     ym = models.CharField(max_length=6, verbose_name="対象年月")
     year = models.CharField(max_length=4, verbose_name="請求年")
     month = models.CharField(max_length=2, verbose_name="請求月")
+    cost = models.IntegerField(verbose_name="コスト")
     turnover_amount = models.IntegerField(verbose_name="売上（税別）")
     tax_amount = models.IntegerField(verbose_name="税金")
     expenses_amount = models.IntegerField(verbose_name="精算")
     amount = models.IntegerField(verbose_name="合計")
+    profit_amount = models.IntegerField(verbose_name="粗利")
+    profit_rate = models.DecimalField(max_digits=3, decimal_places=1, verbose_name="利率")
 
     class Meta:
         managed = False
@@ -29,10 +32,13 @@ class TurnoverMonthly(BaseView):
 
 class TurnoverYearly(BaseView):
     year = models.CharField(max_length=4, primary_key=True, verbose_name="請求年")
+    cost = models.IntegerField(verbose_name="コスト")
     turnover_amount = models.IntegerField(verbose_name="売上（税別）")
     tax_amount = models.IntegerField(verbose_name="税金")
     expenses_amount = models.IntegerField(verbose_name="精算")
     amount = models.IntegerField(verbose_name="合計")
+    profit_amount = models.IntegerField(verbose_name="粗利")
+    profit_rate = models.DecimalField(max_digits=3, decimal_places=1, verbose_name="利率")
 
     class Meta:
         managed = False
@@ -57,10 +63,13 @@ class TurnoverMonthlyByOrganization(BaseView):
         Organization, null=True, on_delete=models.DO_NOTHING, related_name='organization_monthly_turnover_set',
         verbose_name="部署"
     )
+    cost = models.IntegerField(verbose_name="コスト")
     turnover_amount = models.IntegerField(verbose_name="売上（税別）")
     tax_amount = models.IntegerField(verbose_name="税金")
     expenses_amount = models.IntegerField(verbose_name="精算")
     amount = models.IntegerField(verbose_name="合計")
+    profit_amount = models.IntegerField(verbose_name="粗利")
+    profit_rate = models.DecimalField(max_digits=3, decimal_places=1, verbose_name="利率")
 
     class Meta:
         managed = False
@@ -78,10 +87,13 @@ class TurnoverClientsByMonth(BaseView):
     client_name = models.CharField(max_length=30, verbose_name="会社名")
     year = models.CharField(max_length=4, verbose_name="請求年")
     month = models.CharField(max_length=2, verbose_name="請求月")
+    cost = models.IntegerField(verbose_name="コスト")
     turnover_amount = models.IntegerField(verbose_name="売上（税別）")
     tax_amount = models.IntegerField(verbose_name="税金")
     expenses_amount = models.IntegerField(verbose_name="精算")
     amount = models.IntegerField(verbose_name="合計")
+    profit_amount = models.IntegerField(verbose_name="粗利")
+    profit_rate = models.DecimalField(max_digits=3, decimal_places=1, verbose_name="利率")
 
     class Meta:
         managed = False
@@ -101,10 +113,13 @@ class TurnoverClientByMonth(BaseView):
     client_name = models.CharField(max_length=30, verbose_name="会社名")
     year = models.CharField(max_length=4, verbose_name="請求年")
     month = models.CharField(max_length=2, verbose_name="請求月")
+    cost = models.IntegerField(verbose_name="コスト")
     turnover_amount = models.IntegerField(verbose_name="売上（税別）")
     tax_amount = models.IntegerField(verbose_name="税金")
     expenses_amount = models.IntegerField(verbose_name="精算")
     amount = models.IntegerField(verbose_name="合計")
+    profit_amount = models.IntegerField(verbose_name="粗利")
+    profit_rate = models.DecimalField(max_digits=3, decimal_places=1, verbose_name="利率")
 
     class Meta:
         managed = False

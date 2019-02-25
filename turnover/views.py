@@ -72,15 +72,15 @@ class TurnoverClientsByMonthViewSet(BaseReadOnlyModelViewSet):
 class TurnoverClientByMonthFilter(django_filters.FilterSet):
 
    class Meta:
-        model = models.TurnoverClientByMonth
+        model = models.TurnoverProject
         fields = {
             'project_name': ['icontains'],
         }
 
 
-class TurnoverClientByMonthViewSet(BaseReadOnlyModelViewSet):
-    queryset = models.TurnoverClientByMonth.objects.all()
-    serializer_class = serializers.TurnoverClientByMonthSerializer
+class TurnoverProjectViewSet(BaseReadOnlyModelViewSet):
+    queryset = models.TurnoverProject.objects.all()
+    serializer_class = serializers.TurnoverProjectSerializer
     list_display = (
         'project_name', 'cost', 'turnover_amount', 'tax_amount', 'expenses_amount', 'amount',
         'profit_amount', 'profit_rate'
@@ -94,7 +94,9 @@ class TurnoverClientByMonthViewSet(BaseReadOnlyModelViewSet):
         year = self.request.GET.get('year', today.strftime('%Y'))
         month = self.request.GET.get('month', today.strftime('%m'))
         client_id = self.request.GET.get('client_id', None)
-        if client_id:
+        if self.kwargs:
+            return self.queryset.filter(year=year, month=month)
+        elif client_id:
             return self.queryset.filter(year=year, month=month, client_id=client_id)
         else:
             return self.queryset.none()

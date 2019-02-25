@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW v_turnover_client_by_month AS
+CREATE OR REPLACE VIEW v_turnover_project AS
 select p.id
      , p.name as project_name
      , p.client_id

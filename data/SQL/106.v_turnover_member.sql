@@ -15,7 +15,7 @@ select m.id
   from eb_projectrequestdetail prd
   join eb_projectrequest pr on pr.id = prd.project_request_id
   join eb_projectmember pm on pm.id = prd.project_member_id
-  join eb_member m on m.id = pm.id
+  join eb_member m on m.id = pm.member_id
   join eb_project p on p.is_deleted = 0 and p.id = pm.project_id
   join eb_client c on c.id = p.client_id
   left join eb_section s on s.id = prd.member_section_id

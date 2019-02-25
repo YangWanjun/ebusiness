@@ -31,7 +31,7 @@ router.register(r'client', project_api.ClientViewSet)
 router.register(r'project', project_api.ProjectViewSet)
 router.register(r'turnover/monthly', turnover_api.TurnoverMonthlyViewSet)
 router.register(r'turnover/clients_by_month', turnover_api.TurnoverClientsByMonthViewSet)
-router.register(r'turnover/client_by_month', turnover_api.TurnoverClientByMonthViewSet)
+router.register(r'turnover/project', turnover_api.TurnoverProjectViewSet)
 router.register(r'turnover/member', turnover_api.TurnoverMemberViewSet)
 
 urlpatterns = [

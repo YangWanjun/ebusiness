@@ -107,7 +107,7 @@ class TurnoverClientsByMonth(BaseView):
         return self.client_name
 
 
-class TurnoverClientByMonth(BaseView):
+class TurnoverProject(BaseView):
     project_name = models.CharField(max_length=50, verbose_name="案件名")
     client = models.ForeignKey(Client, on_delete=models.DO_NOTHING, verbose_name="会社ID")
     client_name = models.CharField(max_length=30, verbose_name="会社名")
@@ -123,7 +123,7 @@ class TurnoverClientByMonth(BaseView):
 
     class Meta:
         managed = False
-        db_table = 'v_turnover_client_by_month'
+        db_table = 'v_turnover_project'
         ordering = ('project_name',)
         default_permissions = ()
         verbose_name = "案件別売上"

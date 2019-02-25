@@ -9,3 +9,11 @@ class ClientViewSet(BaseModelViewSet):
     list_display = ('name',)
     list_display_links = ('name',)
     filter_fields = ('name',)
+
+
+class ProjectViewSet(BaseModelViewSet):
+    queryset = models.Project.objects.all()
+    serializer_class = serializers.ProjectSerializer
+    list_display = ('name',)
+    list_display_links = ('name',)
+    filter_fields = ('name',)

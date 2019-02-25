@@ -1,7 +1,7 @@
 from django.db import models
 
 from member.models import Organization
-from project.models import Client
+from project.models import Client, Project
 from utils.models import BaseView
 
 
@@ -135,5 +135,27 @@ class TurnoverClientByMonth(BaseView):
 
 class TurnoverMember(BaseView):
     name = models.CharField(max_length=50, verbose_name="社員")
-    organization = models.ForeignKey(Organization, db_column='member_section_id', verbose_name="所属")
-    # project = models.ForeignKey(Pro)
+    organization = models.ForeignKey(
+        Organization, db_column='member_section_id', on_delete=models.DO_NOTHING, verbose_name="所属"
+    )
+    org_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="所属名称")
+    project = models.ForeignKey(Project, on_delete=models.DO_NOTHING, verbose_name="案件")
+    client = models.ForeignKey(Client, on_delete=models.DO_NOTHING, verbose_name="取引先")
+    year = models.CharField(max_length=4, verbose_name="請求年")
+    month = models.CharField(max_length=2, verbose_name="請求月")
+    cost = models.IntegerField(verbose_name="コスト")
+    turnover_amount = models.IntegerField(verbose_name="売上（税別）")
+    expenses_amount = models.IntegerField(verbose_name="精算")
+    profit_amount = models.IntegerField(verbose_name="粗利")
+    profit_rate = models.DecimalField(max_digits=4, decimal_places=1, verbose_name="利率")
+
+    class Meta:
+        managed = False
+        db_table = 'v_turnover_member'
+        ordering = ('name',)
+        default_permissions = ()
+        verbose_name = "社員売上"
+        verbose_name_plural = "社員売上一覧"
+
+    def __str__(self):
+        return self.name

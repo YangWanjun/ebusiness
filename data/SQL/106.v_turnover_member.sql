@@ -2,6 +2,7 @@ CREATE OR REPLACE VIEW v_turnover_member AS
 select m.id
      , concat(m.first_name, ' ', m.last_name) as name
      , prd.member_section_id
+     , s.name as org_name
      , pm.project_id
      , p.client_id
      , pr.year
@@ -17,4 +18,5 @@ select m.id
   join eb_member m on m.id = pm.id
   join eb_project p on p.is_deleted = 0 and p.id = pm.project_id
   join eb_client c on c.id = p.client_id
+  left join eb_section s on s.id = prd.member_section_id
 ;

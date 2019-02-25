@@ -85,6 +85,7 @@ class TurnoverClientByMonthViewSet(BaseReadOnlyModelViewSet):
         'project_name', 'cost', 'turnover_amount', 'tax_amount', 'expenses_amount', 'amount',
         'profit_amount', 'profit_rate'
     )
+    list_display_links = ('project_name',)
     filter_fields = ('project_name',)
     filter_class = TurnoverClientByMonthFilter
 
@@ -96,4 +97,23 @@ class TurnoverClientByMonthViewSet(BaseReadOnlyModelViewSet):
         if client_id:
             return self.queryset.filter(year=year, month=month, client_id=client_id)
         else:
-            return models.TurnoverClientByMonth.objects.none()
+            return self.queryset.none()
+
+
+class TurnoverMemberViewSet(BaseReadOnlyModelViewSet):
+    queryset = models.TurnoverMember.objects.all()
+    serializer_class = serializers.TurnoverMemberSerializer
+    list_display = (
+        'name', 'org_name', 'cost', 'turnover_amount', 'expenses_amount',
+        'profit_amount', 'profit_rate'
+    )
+
+    def get_queryset(self):
+        today = datetime.date.today()
+        year = self.request.GET.get('year', today.strftime('%Y'))
+        month = self.request.GET.get('month', today.strftime('%m'))
+        project_id = self.request.GET.get('project_id', None)
+        if project_id:
+            return self.queryset.filter(year=year, month=month, project__pk=project_id)
+        else:
+            return self.queryset.none()

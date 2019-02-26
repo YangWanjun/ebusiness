@@ -1,18 +1,52 @@
+import datetime
+import sys
 from collections import OrderedDict
 
+from django.utils import timezone
+
+from rest_framework.fields import SkipField
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.mixins import ListModelMixin, \
     RetrieveModelMixin, CreateModelMixin, UpdateModelMixin, DestroyModelMixin
-from rest_framework.serializers import IntegerField, DecimalField
+from rest_framework.serializers import IntegerField, DecimalField, DateTimeField, ChoiceField, \
+    ModelSerializer
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.relations import PKOnlyObject
 from rest_framework.response import Response
-from rest_framework.serializers import ModelSerializer
 
 
 class BaseModelSerializer(ModelSerializer):
 
-    pass
+    def to_representation(self, instance):
+        """
+        Object instance -> Dict of primitive datatypes.
+        """
+        ret = OrderedDict()
+        fields = self._readable_fields
+
+        for field in fields:
+            try:
+                attribute = field.get_attribute(instance)
+            except SkipField:
+                continue
+
+            # We skip `to_representation` for `None` values so that fields do
+            # not have to explicitly deal with that case.
+            #
+            # For related fields with `use_pk_only_optimization` we need to
+            # resolve the pk value.
+            check_for_none = attribute.pk if isinstance(attribute, PKOnlyObject) else attribute
+            if check_for_none is None:
+                ret[field.field_name] = None
+            elif isinstance(field, DateTimeField) and isinstance(attribute, datetime.datetime):
+                # ローカルゾーンの時間に設定する。
+                attribute = timezone.localtime(attribute)
+                ret[field.field_name] = attribute.strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                ret[field.field_name] = field.to_representation(attribute)
+
+        return ret
 
 
 class MyLimitOffsetPagination(LimitOffsetPagination):
@@ -69,8 +103,15 @@ class BaseListModelMixin(ListModelMixin):
                     return getattr(method, 'sort_field')
             return None
 
+        def get_index(lst, val):
+            try:
+                return lst.index(val)
+            except ValueError:
+                return sys.maxsize
+
         for name, field in serializer.get_fields().items():
             is_numeric = isinstance(field, (IntegerField, DecimalField))
+            choices = field.choices if isinstance(field, ChoiceField) else dict()
             sort_field = get_sort_field(name, serializer)
             if self.get_list_display_links() and name in self.get_list_display_links():
                 url_field = 'url'
@@ -83,12 +124,14 @@ class BaseListModelMixin(ListModelMixin):
                 'disablePadding': False,
                 'label': field.label,
                 'visible': name in list_display,
+                'choices': choices,
                 'searchable': name in search_fields,
                 'searchType': self.get_search_type(name),
                 'sortable': True if sort_field else False,
                 'sort_field': sort_field,
             })
-        return columns
+        sort_list = [get_index(list_display, c.get('id')) for c in columns]
+        return [x for x, _ in sorted(zip(columns, sort_list), key=lambda pair: pair[1])]
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

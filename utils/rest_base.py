@@ -121,7 +121,6 @@ class BaseListModelMixin(ListModelMixin):
                 'id': name,
                 'urlField': url_field,
                 'numeric': is_numeric,
-                'disablePadding': False,
                 'label': field.label,
                 'visible': name in list_display,
                 'choices': choices,
@@ -150,7 +149,13 @@ class BaseListModelMixin(ListModelMixin):
         ]))
 
 
-class BaseReadOnlyModelViewSet(RetrieveModelMixin,
+class BaseRetrieveModelMixin(RetrieveModelMixin):
+
+    def retrieve(self, request, *args, **kwargs):
+        return super(BaseRetrieveModelMixin, self).retrieve(request, *args, **kwargs)
+
+
+class BaseReadOnlyModelViewSet(BaseRetrieveModelMixin,
                                BaseListModelMixin,
                                GenericViewSet):
     pagination_class = MyLimitOffsetPagination
@@ -161,7 +166,7 @@ class BaseReadOnlyModelViewSet(RetrieveModelMixin,
 
 
 class BaseModelViewSet(CreateModelMixin,
-                       RetrieveModelMixin,
+                       BaseRetrieveModelMixin,
                        UpdateModelMixin,
                        DestroyModelMixin,
                        BaseListModelMixin,

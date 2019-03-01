@@ -20,6 +20,7 @@ class ProjectFilter(django_filters.FilterSet):
         fields = {
             'name': ['icontains'],
             'client__name': ['icontains'],
+            'business_type': ['iexact'],
         }
 
 

@@ -21,15 +21,16 @@ class ProjectFilter(django_filters.FilterSet):
             'name': ['icontains'],
             'client__name': ['icontains'],
             'business_type': ['iexact'],
+            'status': ['iexact'],
         }
 
 
 class ProjectViewSet(BaseModelViewSet):
     queryset = models.Project.objects.all()
     serializer_class = serializers.ProjectSerializer
-    list_display = ('name', 'client__name', 'business_type', 'start_date', 'end_date', 'updated_dt')
+    list_display = ('name', 'client__name', 'business_type', 'start_date', 'end_date', 'updated_dt', 'status')
     list_display_links = ('name',)
-    filter_fields = ('name', 'client__name', 'business_type')
+    filter_fields = ('name', 'client__name', 'business_type', 'status')
     filter_class = ProjectFilter
 
 
@@ -37,8 +38,9 @@ class ProjectMemberViewSet(BaseModelViewSet):
     queryset = models.ProjectMember.objects.all()
     serializer_class = serializers.ProjectMemberSerializer
     list_display = (
-        'member_name', 'start_date', 'start_date',
+        'member_name', 'start_date', 'end_date',
         'price', 'min_hours', 'max_hours', 'plus_per_hour', 'minus_per_hour', 'hourly_pay',
         'contract_type', 'status'
     )
+    pagination_class = None
     filter_fields = ('project',)

@@ -146,6 +146,7 @@ class BaseListModelMixin(ListModelMixin):
             serializer = self.get_serializer(queryset, many=True)
             columns = self.get_columns_definition(serializer.child)
             return Response(OrderedDict([
+                ('count', queryset.count()),
                 ('columns', columns or []),
                 ('results', serializer.data),
             ]))

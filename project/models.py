@@ -1,5 +1,7 @@
 from django.db import models
 
+from master.models import ProjectStage
+from member.models import Member
 from utils import constants
 from utils.models import AbstractCompany, BaseModel
 
@@ -33,6 +35,26 @@ class Client(AbstractCompany):
         verbose_name_plural = '取引先一覧'
 
 
+class ClientMember(BaseModel):
+    name = models.CharField(max_length=30, verbose_name="名前")
+    email = models.EmailField(blank=True, null=True, verbose_name="メールアドレス")
+    phone = models.CharField(max_length=11, blank=True, null=True, verbose_name="電話番号")
+    client = models.ForeignKey(Client, on_delete=models.PROTECT, verbose_name="所属会社")
+    created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
+
+    class Meta:
+        managed = False
+        db_table = 'eb_clientmember'
+        default_permissions = ()
+        ordering = ['name']
+        verbose_name = "お客様"
+        verbose_name_plural = 'お客様一覧'
+
+    def __str__(self):
+        return self.name
+
+
 class Project(BaseModel):
     name = models.CharField(max_length=50, blank=False, null=False, verbose_name="案件名称")
     description = models.TextField(blank=True, null=True, verbose_name="案件概要")
@@ -43,7 +65,7 @@ class Project(BaseModel):
     )
     start_date = models.DateField(blank=True, null=True, verbose_name="開始日")
     end_date = models.DateField(blank=True, null=True, verbose_name="終了日",)
-    address = models.CharField(max_length=255, blank=True, null=True, verbose_name="作業場所")
+    address1 = models.CharField(max_length=255, blank=True, null=True, db_column='address', verbose_name="作業場所")
     nearest_station = models.CharField(max_length=15, blank=False, null=True, verbose_name="最寄駅",)
     status = models.IntegerField(choices=constants.CHOICE_PROJECT_STATUS, verbose_name="ステータス")
     attendance_type = models.CharField(
@@ -71,6 +93,14 @@ class Project(BaseModel):
         help_text="バーチャル案件です、コストなどを算出ために非稼働メンバーをこの案件にアサインすればいい。"
     )
     client = models.ForeignKey(Client, null=True, on_delete=models.PROTECT, verbose_name="関連会社")
+    manager = models.ForeignKey(
+        ClientMember, blank=False, null=True, db_column='boss_id', on_delete=models.PROTECT,
+        related_name="manager_set", verbose_name="案件責任者"
+    )
+    contact = models.ForeignKey(
+        ClientMember, blank=True, null=True, db_column='middleman_id', on_delete=models.PROTECT,
+        related_name="contact_set", verbose_name="案件連絡者"
+    )
     created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
     updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
 
@@ -85,3 +115,38 @@ class Project(BaseModel):
 
     def __str__(self):
         return self.name
+
+
+class ProjectMember(BaseModel):
+    project = models.ForeignKey(Project, on_delete=models.PROTECT, verbose_name='案件')
+    member = models.ForeignKey(Member, on_delete=models.PROTECT, verbose_name="名前")
+    start_date = models.DateField(blank=False, null=True, verbose_name="開始日")
+    end_date = models.DateField(blank=False, null=True, verbose_name="終了日")
+    price = models.IntegerField(default=0, verbose_name="単価")
+    min_hours = models.DecimalField(max_digits=5, decimal_places=2, default=160, verbose_name="基準時間")
+    max_hours = models.DecimalField(max_digits=5, decimal_places=2, default=180, verbose_name="最大時間")
+    plus_per_hour = models.IntegerField(default=0, verbose_name="増（円）")
+    minus_per_hour = models.IntegerField(default=0, verbose_name="減（円）")
+    hourly_pay = models.IntegerField(blank=True, null=True, verbose_name="時給")
+    status = models.CharField(
+        max_length=1, null=False, default=1,
+        choices=constants.CHOICE_PROJECT_MEMBER_STATUS, verbose_name="ステータス"
+    )
+    role = models.CharField(max_length=2, default="PG", choices=constants.CHOICE_PROJECT_ROLE, verbose_name="作業区分")
+    contract_type = models.CharField(
+        max_length=2, blank=True, null=True, choices=constants.CHOICE_CLIENT_CONTRACT_TYPE,
+        verbose_name="契約形態"
+    )
+    stages = models.ManyToManyField(ProjectStage, blank=True, verbose_name="作業工程")
+    created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
+
+    class Meta:
+        managed = False
+        db_table = 'eb_projectmember'
+        default_permissions = ()
+        verbose_name = "案件メンバー"
+        verbose_name_plural = '案件メンバー一覧'
+
+    def __str__(self):
+        return str(self.member)

@@ -54,3 +54,19 @@ class BankBranch(BaseModel):
 
     def __str__(self):
         return self.branch_name
+
+
+class ProjectStage(BaseModel):
+    name = models.CharField(max_length=15, unique=True, verbose_name="作業工程名称")
+    created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
+
+    class Meta:
+        managed = False
+        db_table = 'mst_project_stage'
+        default_permissions = ()
+        verbose_name = "作業工程"
+        verbose_name_plural = '作業工程一覧'
+
+    def __str__(self):
+        return self.name

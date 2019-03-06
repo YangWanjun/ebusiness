@@ -19,15 +19,19 @@ class Member(AbstractMember):
     residence_type = models.CharField(
         blank=True, null=True, max_length=20, choices=constants.CHOICE_RESIDENCE_TYPE, verbose_name="在留種類"
     )
-    pay_bank = models.ForeignKey(Bank, blank=True, null=True, on_delete=PROTECT, verbose_name="銀行")
-    pay_branch = models.ForeignKey(BankBranch, blank=True, null=True, on_delete=PROTECT, verbose_name="銀行支店")
+    # pay_bank = models.ForeignKey(Bank, blank=True, null=True, on_delete=PROTECT, verbose_name="銀行")
+    # pay_branch = models.ForeignKey(BankBranch, blank=True, null=True, on_delete=PROTECT, verbose_name="銀行支店")
     pay_owner = models.CharField(blank=True, null=True, max_length=20, verbose_name="口座名義")
     pay_owner_kana = models.CharField(blank=True, null=True, max_length=20, verbose_name="口座名義（カナ）")
     pay_account = models.CharField(blank=True, null=True, max_length=20, verbose_name="口座番号")
     avatar_url = models.CharField(blank=True, null=True, max_length=500, verbose_name="自分の写真")
+    created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
 
     class Meta:
+        managed = False
         db_table = 'eb_member'
+        default_permissions = ()
         verbose_name = "社員"
         verbose_name_plural = "社員一覧"
 

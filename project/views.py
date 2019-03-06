@@ -31,3 +31,14 @@ class ProjectViewSet(BaseModelViewSet):
     list_display_links = ('name',)
     filter_fields = ('name', 'client__name', 'business_type')
     filter_class = ProjectFilter
+
+
+class ProjectMemberViewSet(BaseModelViewSet):
+    queryset = models.ProjectMember.objects.all()
+    serializer_class = serializers.ProjectMemberSerializer
+    list_display = (
+        'member_name', 'start_date', 'start_date',
+        'price', 'min_hours', 'max_hours', 'plus_per_hour', 'minus_per_hour', 'hourly_pay',
+        'contract_type', 'status'
+    )
+    filter_fields = ('project',)

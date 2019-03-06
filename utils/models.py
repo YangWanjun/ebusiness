@@ -80,7 +80,9 @@ class AbstractMember(BaseModel):
         blank=True, null=True, max_length=30, verbose_name="名(ローマ字)",
         help_text="先頭文字は大文字にしてください（例：Zhang）"
     )
-    gender = models.CharField(blank=True, null=True, max_length=1, choices=constants.CHOICE_SEX, verbose_name="性別")
+    gender = models.CharField(
+        max_length=1, blank=True, null=True, db_column='sex', choices=constants.CHOICE_GENDER, verbose_name="性別"
+    )
     country = models.CharField(blank=True, null=True, max_length=20, verbose_name="国籍・地域")
     birthday = models.DateField(blank=True, null=True, verbose_name="生年月日")
     graduate_date = models.DateField(blank=True, null=True, verbose_name="卒業年月日")
@@ -104,7 +106,8 @@ class AbstractMember(BaseModel):
         help_text="数値だけを入力してください、例：08012345678"
     )
     marriage = models.CharField(
-        max_length=1, blank=True, null=True, choices=constants.CHOICE_MARRIED, verbose_name="婚姻状況"
+        max_length=1, blank=True, null=True, db_column='is_married',
+        choices=constants.CHOICE_MARRIED, verbose_name="婚姻状況"
     )
     japanese_description = models.CharField(max_length=250, blank=True, null=True, verbose_name="日本語能力の説明")
     certificate = models.CharField(max_length=250, blank=True, null=True, verbose_name="資格の説明")

@@ -133,26 +133,53 @@ class BaseListModelMixin(ListModelMixin):
         return [x for x, _ in sorted(zip(columns, sort_list), key=lambda pair: pair[1])]
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+        schema = request.GET.get('schema', '1') or '1'
+        if schema == '1':
+            queryset = self.filter_queryset(self.get_queryset())
 
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                columns = self.get_columns_definition(serializer.child)
+                return self.get_paginated_response(serializer.data, columns)
+
+            serializer = self.get_serializer(queryset, many=True)
             columns = self.get_columns_definition(serializer.child)
-            return self.get_paginated_response(serializer.data, columns)
-
-        serializer = self.get_serializer(queryset, many=True)
-        columns = self.get_columns_definition(serializer.child)
-        return Response(OrderedDict([
-            ('columns', columns or []),
-            ('results', serializer.data),
-        ]))
+            return Response(OrderedDict([
+                ('columns', columns or []),
+                ('results', serializer.data),
+            ]))
+        else:
+            return super(BaseListModelMixin, self).list(request, *args, **kwargs)
 
 
 class BaseRetrieveModelMixin(RetrieveModelMixin):
 
+    def get_schema(self, serializer):
+        columns = []
+        for name, field in serializer.get_fields().items():
+            is_numeric = isinstance(field, (IntegerField, DecimalField))
+            choices = field.choices if isinstance(field, ChoiceField) else dict()
+            columns.append({
+                'id': name,
+                'numeric': is_numeric,
+                'label': field.label,
+                'choices': choices,
+            })
+        return columns
+
     def retrieve(self, request, *args, **kwargs):
-        return super(BaseRetrieveModelMixin, self).retrieve(request, *args, **kwargs)
+        if request.GET.get('schema') == '1':
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            columns = self.get_schema(serializer)
+            data = serializer.data
+            data.update({
+                'columns': columns,
+            })
+            return Response(data)
+        else:
+            return super(BaseRetrieveModelMixin, self).retrieve(request, *args, **kwargs)
 
 
 class BaseReadOnlyModelViewSet(BaseRetrieveModelMixin,

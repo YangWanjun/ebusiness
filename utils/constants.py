@@ -125,6 +125,10 @@ CHOICE_CLIENT_CONTRACT_TYPE = (
     # ('12', "出向（完全）"),
     ('99', "その他"),
 )
+CHOICE_BOOLEAN = (
+    (True, 'はい'),
+    (False, 'いいえ'),
+)
 
 DICT_MONTH_EN = {
     '01': 'Jan',
@@ -139,4 +143,15 @@ DICT_MONTH_EN = {
     '10': 'Oct',
     '11': 'Nov',
     '12': 'Dec',
+}
+DICT_PROJECT_STATUS_CLASS = {
+    '1': 'lime',  # 提案
+    '2': 'purple',  # 予算審査
+    '3': 'blue',  # 予算確定
+    '4': 'green',  # 実施中
+    '5': 'grey',  # 完了
+}
+DICT_PROJECT_MEMBER_STATUS_CLASS = {
+    '1': 'lime',  # 提案中
+    '2': 'green',  # 作業確定
 }

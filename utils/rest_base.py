@@ -10,10 +10,12 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.mixins import ListModelMixin, \
     RetrieveModelMixin, CreateModelMixin, UpdateModelMixin, DestroyModelMixin
 from rest_framework.serializers import IntegerField, DecimalField, DateTimeField, ChoiceField, \
-    ModelSerializer
+    ModelSerializer, BooleanField
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.relations import PKOnlyObject
 from rest_framework.response import Response
+
+from utils import constants
 
 
 class BaseModelSerializer(ModelSerializer):
@@ -66,6 +68,8 @@ class BaseListModelMixin(ListModelMixin):
     list_display_links = ()
     filter_fields = ()
     filter_class = None
+    choice_classes = {}
+    row_classes = {}
 
     def get_list_display(self):
         list_display = self.list_display
@@ -111,7 +115,9 @@ class BaseListModelMixin(ListModelMixin):
 
         for name, field in serializer.get_fields().items():
             is_numeric = isinstance(field, (IntegerField, DecimalField))
+            is_boolean = name.startswith('is_') or name.startswith('has_')
             choices = field.choices if isinstance(field, ChoiceField) else dict()
+            choices = dict(constants.CHOICE_BOOLEAN) if is_boolean else choices
             sort_field = get_sort_field(name, serializer)
             if self.get_list_display_links() and name in self.get_list_display_links():
                 url_field = 'url'
@@ -121,9 +127,11 @@ class BaseListModelMixin(ListModelMixin):
                 'id': name,
                 'urlField': url_field,
                 'numeric': is_numeric,
+                'boolean': is_boolean,
                 'label': field.label,
                 'visible': name in list_display,
                 'choices': choices,
+                'choiceClasses': self.choice_classes.get(name, None),
                 'searchable': name in search_fields,
                 'searchType': self.get_search_type(name),
                 'sortable': True if sort_field else False,
@@ -155,8 +163,10 @@ class BaseListModelMixin(ListModelMixin):
 
 
 class BaseRetrieveModelMixin(RetrieveModelMixin):
+    choice_classes = {}
 
-    def get_schema(self, serializer):
+    @classmethod
+    def get_schema(cls, serializer):
         columns = []
         for name, field in serializer.get_fields().items():
             is_numeric = isinstance(field, (IntegerField, DecimalField))
@@ -166,6 +176,7 @@ class BaseRetrieveModelMixin(RetrieveModelMixin):
                 'numeric': is_numeric,
                 'label': field.label,
                 'choices': choices,
+                'choiceClasses': cls.choice_classes.get(name, None),
             })
         return columns
 

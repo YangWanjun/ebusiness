@@ -128,16 +128,16 @@ class ProjectMember(BaseModel):
     plus_per_hour = models.IntegerField(default=0, verbose_name="増（円）")
     minus_per_hour = models.IntegerField(default=0, verbose_name="減（円）")
     hourly_pay = models.IntegerField(blank=True, null=True, verbose_name="時給")
-    status = models.CharField(
-        max_length=1, null=False, default=1,
-        choices=constants.CHOICE_PROJECT_MEMBER_STATUS, verbose_name="ステータス"
-    )
     role = models.CharField(max_length=2, default="PG", choices=constants.CHOICE_PROJECT_ROLE, verbose_name="作業区分")
     contract_type = models.CharField(
         max_length=2, blank=True, null=True, choices=constants.CHOICE_CLIENT_CONTRACT_TYPE,
         verbose_name="契約形態"
     )
     stages = models.ManyToManyField(ProjectStage, blank=True, verbose_name="作業工程")
+    status = models.CharField(
+        max_length=1, null=False, default=1,
+        choices=constants.CHOICE_PROJECT_MEMBER_STATUS, verbose_name="ステータス"
+    )
     created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
     updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
 

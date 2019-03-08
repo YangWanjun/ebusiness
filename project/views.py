@@ -1,6 +1,7 @@
 import django_filters
 
 from . import models, serializers
+from utils import constants
 from utils.rest_base import BaseModelViewSet
 
 
@@ -32,6 +33,9 @@ class ProjectViewSet(BaseModelViewSet):
     list_display_links = ('name',)
     filter_fields = ('name', 'client__name', 'business_type', 'status')
     filter_class = ProjectFilter
+    choice_classes = {
+        'status': constants.DICT_PROJECT_STATUS_CLASS,
+    }
 
 
 class ProjectMemberViewSet(BaseModelViewSet):
@@ -40,7 +44,16 @@ class ProjectMemberViewSet(BaseModelViewSet):
     list_display = (
         'member_name', 'start_date', 'end_date',
         'price', 'min_hours', 'max_hours', 'plus_per_hour', 'minus_per_hour', 'hourly_pay',
-        'contract_type', 'status'
+        'contract_type', 'status',
     )
     pagination_class = None
-    filter_fields = ('project',)
+    choice_classes = {
+        'status': constants.DICT_PROJECT_MEMBER_STATUS_CLASS,
+    }
+
+    def get_queryset(self):
+        project_id = self.request.GET.get('project')
+        if not project_id:
+            return self.queryset.none()
+        else:
+            return self.queryset.filter(project__pk=project_id)

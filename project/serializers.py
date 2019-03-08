@@ -1,3 +1,5 @@
+from django.utils import timezone
+
 from rest_framework import serializers
 
 from . import models
@@ -36,6 +38,7 @@ class ProjectSerializer(BaseModelSerializer):
 class ProjectMemberSerializer(BaseModelSerializer):
     member_name = serializers.SerializerMethodField(read_only=True, label='名前')
     project__name = serializers.CharField(source='project.name', read_only=True, label='案件名称')
+    is_working = serializers.SerializerMethodField(read_only=True, label='稼働中')
 
     class Meta:
         model = models.ProjectMember
@@ -43,3 +46,6 @@ class ProjectMemberSerializer(BaseModelSerializer):
 
     def get_member_name(self, obj):
         return '{} {}'.format(obj.member.first_name, obj.member.last_name)
+
+    def get_is_working(self, obj):
+        return obj.end_date is None or obj.end_date >= timezone.now().date()

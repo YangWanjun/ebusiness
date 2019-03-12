@@ -17,7 +17,7 @@ from django.conf.urls import url, include
 from django.contrib import admin
 
 from rest_framework import routers
-
+from rest_framework_jwt.views import obtain_jwt_token
 
 from member import views as member_view
 from partner import views as partner_api
@@ -38,6 +38,7 @@ router.register(r'turnover/member', turnover_api.TurnoverMemberViewSet)
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api-auth/', include('rest_framework.urls')),
+    url('token-auth/', obtain_jwt_token),
     url(r'^api/', include(router.urls)),
 
     url(r'^api/turnover/monthly/chart', turnover_api.TurnoverMonthlyChartView.as_view()),

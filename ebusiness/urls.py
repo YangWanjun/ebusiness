@@ -38,7 +38,7 @@ router.register(r'turnover/member', turnover_api.TurnoverMemberViewSet)
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api-auth/', include('rest_framework.urls')),
-    url('token-auth/', obtain_jwt_token),
+    url(r'^api/token-auth/', obtain_jwt_token),
     url(r'^api/', include(router.urls)),
 
     url(r'^api/turnover/monthly/chart', turnover_api.TurnoverMonthlyChartView.as_view()),

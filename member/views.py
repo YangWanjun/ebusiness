@@ -1,7 +1,9 @@
 import django_filters
 
-from . import models, serializers
-from utils.rest_base import BaseModelViewSet
+from rest_framework.response import Response
+
+from . import models, serializers, biz
+from utils.rest_base import BaseModelViewSet, BaseApiView
 
 
 class MemberFilter(django_filters.FilterSet):
@@ -20,3 +22,10 @@ class MemberViewSet(BaseModelViewSet):
     list_display = ('full_name', 'gender', 'address', 'join_date')
     filter_fields = ('last_name', 'first_name')
     filter_class = MemberFilter
+
+
+class MeApiView(BaseApiView):
+
+    def post(self, request, *args, **kwargs):
+        data = biz.get_me(request.user)
+        return Response(data)

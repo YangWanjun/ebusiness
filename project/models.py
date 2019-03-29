@@ -3,7 +3,7 @@ from django.db import models
 from master.models import ProjectStage
 from member.models import Member
 from utils import constants
-from utils.models import AbstractCompany, BaseModel
+from utils.models import AbstractCompany, BaseModel, BaseView
 
 
 # Create your models here.
@@ -67,7 +67,6 @@ class Project(BaseModel):
     end_date = models.DateField(blank=True, null=True, verbose_name="終了日",)
     address1 = models.CharField(max_length=255, blank=True, null=True, db_column='address', verbose_name="作業場所")
     nearest_station = models.CharField(max_length=15, blank=False, null=True, verbose_name="最寄駅",)
-    status = models.IntegerField(choices=constants.CHOICE_PROJECT_STATUS, verbose_name="ステータス")
     attendance_type = models.CharField(
         max_length=1, default='1', choices=constants.CHOICE_ATTENDANCE_TYPE, verbose_name="出勤の計算区分"
     )
@@ -101,6 +100,7 @@ class Project(BaseModel):
         ClientMember, blank=True, null=True, db_column='middleman_id', on_delete=models.PROTECT,
         related_name="contact_set", verbose_name="案件連絡者"
     )
+    status = models.IntegerField(choices=constants.CHOICE_PROJECT_STATUS, verbose_name="ステータス")
     created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
     updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
 
@@ -144,9 +144,35 @@ class ProjectMember(BaseModel):
     class Meta:
         managed = False
         db_table = 'eb_projectmember'
+        ordering = ('-end_date',)
         default_permissions = ()
         verbose_name = "案件メンバー"
         verbose_name_plural = '案件メンバー一覧'
 
     def __str__(self):
         return str(self.member)
+
+
+class VProject(BaseView):
+    name = models.CharField(max_length=50, blank=False, null=False, verbose_name="案件名称")
+    client_id = models.PositiveIntegerField(blank=True, null=True, verbose_name="関連会社ＩＤ")
+    client_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="関連会社名称")
+    business_type = models.CharField(
+        max_length=2, blank=False, null=True,
+        choices=constants.CHOICE_PROJECT_BUSINESS_TYPE,
+        verbose_name="事業分類",
+    )
+    salesperson_id = models.PositiveIntegerField(blank=True, null=True, verbose_name="営業ＩＤ")
+    salesperson_name = models.CharField(max_length=30, blank=True, null=True, verbose_name="営業員")
+    member_name = models.CharField(max_length=30, blank=True, null=True, verbose_name="メンバー")
+    start_date = models.DateField(blank=True, null=True, verbose_name="開始日")
+    end_date = models.DateField(blank=True, null=True, verbose_name="終了日",)
+    status = models.IntegerField(choices=constants.CHOICE_PROJECT_STATUS, verbose_name="ステータス")
+    updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
+
+    class Meta:
+        managed = False
+        db_table = 'v_project'
+        default_permissions = ()
+        verbose_name = "案件"
+        verbose_name_plural = '案件一覧1'

@@ -25,10 +25,17 @@ class ProjectSerializer(BaseModelSerializer):
     client__name = serializers.CharField(source='client.name', read_only=True, label='関連会社')
     manager__name = serializers.CharField(source='manager.name', read_only=True, label='案件責任者')
     contact__name = serializers.CharField(source='contact.name', read_only=True, label='案件連絡者')
-    url = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Project
+        fields = '__all__'
+
+
+class VProjectSerializer(BaseModelSerializer):
+    url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.VProject
         fields = '__all__'
 
     def get_url(self, obj):

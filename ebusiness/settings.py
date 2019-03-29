@@ -138,6 +138,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),
+    'DEFAULT_METADATA_CLASS': 'utils.meta_data.BaseSimpleMetadata',
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
         'utils.filters.CustomFilter'
@@ -148,7 +149,7 @@ REST_FRAMEWORK = {
 
 JWT_AUTH = {
     # how long the original token is valid for
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(minutes=3),
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(minutes=30),
 
     # allow refreshing of tokens
     'JWT_ALLOW_REFRESH': True,

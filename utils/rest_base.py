@@ -10,7 +10,7 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.mixins import ListModelMixin, \
     RetrieveModelMixin, CreateModelMixin, UpdateModelMixin, DestroyModelMixin
 from rest_framework.serializers import IntegerField, DecimalField, DateTimeField, ChoiceField, \
-    ModelSerializer, BooleanField
+    ModelSerializer
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.relations import PKOnlyObject
 from rest_framework.response import Response
@@ -131,7 +131,7 @@ class BaseListModelMixin(ListModelMixin):
                 'label': field.label,
                 'visible': name in list_display,
                 'choices': choices,
-                'choiceClasses': self.choice_classes.get(name, None),
+                'choiceClasses': self.choice_classes.get(name, {}),
                 'searchable': name in search_fields,
                 'searchType': self.get_search_type(name),
                 'sortable': True if sort_field else False,
@@ -176,7 +176,7 @@ class BaseRetrieveModelMixin(RetrieveModelMixin):
                 'numeric': is_numeric,
                 'label': field.label,
                 'choices': choices,
-                'choiceClasses': cls.choice_classes.get(name, None),
+                'choiceClasses': cls.choice_classes.get(name, {}),
             })
         return columns
 
@@ -204,6 +204,12 @@ class BaseReadOnlyModelViewSet(BaseRetrieveModelMixin,
         return self.paginator.get_paginated_response(data, columns)
 
 
+class BaseModelSchemaView(object):
+
+    def get_extra_schema(self):
+        pass
+
+
 class BaseModelViewSet(CreateModelMixin,
                        BaseRetrieveModelMixin,
                        UpdateModelMixin,
@@ -211,6 +217,7 @@ class BaseModelViewSet(CreateModelMixin,
                        BaseListModelMixin,
                        GenericViewSet):
     pagination_class = MyLimitOffsetPagination
+    schema_class = BaseModelSchemaView
 
     def get_paginated_response(self, data, columns=None):
         assert self.paginator is not None

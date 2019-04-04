@@ -5,7 +5,7 @@ from django.db.models import PROTECT
 
 from master.models import Bank, BankBranch
 from utils import constants
-from utils.models import BaseModel, AbstractMember
+from utils.models import BaseModel, AbstractMember, BaseView
 
 
 class Member(AbstractMember):
@@ -81,3 +81,28 @@ class Membership(BaseModel):
         db_table = 'eb_membership'
         verbose_name = "所属"
         verbose_name_plural = "所属一覧"
+
+
+class SearchMember(BaseView):
+    name = models.CharField(max_length=50, verbose_name="名前")
+    member_type = models.CharField(
+        max_length=1, blank=True, null=True, choices=constants.CHOICE_MEMBER_TYPE, verbose_name="雇用形態"
+    )
+    join_date = models.DateField(blank=True, null=True, verbose_name='入社年月日')
+    end_date = models.DateField(blank=True, null=True, verbose_name='契約終了日')
+    salesperson_id = models.PositiveIntegerField(blank=True, null=True, verbose_name="営業ＩＤ")
+    salesperson_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="営業員")
+    division_id = models.PositiveIntegerField(blank=True, null=True, verbose_name="事業部ＩＤ")
+    division_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="事業部名称")
+    department_id = models.PositiveIntegerField(blank=True, null=True, verbose_name="部署ＩＤ")
+    department_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="部署名称")
+    section_id = models.PositiveIntegerField(blank=True, null=True, verbose_name="課ＩＤ")
+    section_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="課名称")
+    partner_id = models.PositiveIntegerField(blank=True, null=True, verbose_name="協力会社ＩＤ")
+    partner_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="協力会社名称")
+
+    class Meta:
+        managed = False
+        default_permissions = ()
+        verbose_name = "メンバー"
+        verbose_name_plural = "メンバー一覧"

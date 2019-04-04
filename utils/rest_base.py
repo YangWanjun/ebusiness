@@ -16,6 +16,7 @@ from rest_framework.relations import PKOnlyObject
 from rest_framework.response import Response
 
 from utils import constants
+from utils.meta_data import BaseModelMetadata
 
 
 class BaseModelSerializer(ModelSerializer):
@@ -206,7 +207,8 @@ class BaseReadOnlyModelViewSet(BaseRetrieveModelMixin,
 
 class BaseModelSchemaView(object):
 
-    def get_extra_schema(self):
+    @classmethod
+    def get_extra_schema(cls):
         pass
 
 
@@ -225,4 +227,5 @@ class BaseModelViewSet(CreateModelMixin,
 
 
 class BaseApiView(APIView):
-    pass
+    metadata_class = BaseModelMetadata
+    model_class = None

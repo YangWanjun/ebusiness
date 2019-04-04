@@ -22,3 +22,20 @@ def to_relative_url(absolute_url):
     """
     result = urlparse(absolute_url)
     return result.path
+
+
+def choices_to_dict_list(choices):
+    """
+
+    :param choices:
+    :return:
+    """
+    if not choices:
+        return None
+    results = []
+    for k, v in choices:
+        results.append({
+            'value': k,
+            'display_name': v
+        })
+    return results

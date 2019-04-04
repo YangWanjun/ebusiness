@@ -17,7 +17,7 @@ select m.id
 	 , concat(sales.first_name, ' ', sales.last_name) as salesperson_name
      , division.id as division_id
      , division.name as division_name
-     , department.id as department_name
+     , department.id as department_id
      , department.name as department_name
      , section.id as section_id
      , section.name as section_name
@@ -90,7 +90,7 @@ select m.id
   left join eb_section division on division.id = msp2.division_id
   left join eb_section department on department.id = msp2.section_id
   left join eb_section section on division.id = msp2.subsection_id
- order by t.name
+ order by m.id
         , t.join_date
 ;
 

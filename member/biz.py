@@ -1,4 +1,7 @@
-from collections import defaultdict
+from django.db import connection
+
+from . import models
+from utils import common
 
 
 def get_me(user):
@@ -15,3 +18,15 @@ def get_me(user):
         'me': me,
         'perms': user.get_all_permissions(),
     }
+
+
+def search_member_by_name(keyword):
+    """名前によってメンバーを検索する
+
+    :param keyword: 名前またはその一部
+    :return:
+    """
+    with connection.cursor() as cursor:
+        cursor.callproc('sp_search_member', (keyword,))
+        results = common.dictfetchall(cursor)
+    return results

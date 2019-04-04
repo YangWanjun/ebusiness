@@ -29,3 +29,15 @@ class MeApiView(BaseApiView):
     def post(self, request, *args, **kwargs):
         data = biz.get_me(request.user)
         return Response(data)
+
+
+class SearchMemberView(BaseApiView):
+    model_class = models.SearchMember
+
+    def get(self, request, *args, **kwargs):
+        search = request.GET.get('search', None)
+        members = biz.search_member_by_name(search)
+        return Response({
+            'count': len(members),
+            'results': members
+        })

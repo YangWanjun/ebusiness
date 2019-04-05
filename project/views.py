@@ -55,7 +55,7 @@ class ProjectMemberSchemaView(BaseModelSchemaView):
     def get_extra_schema(cls):
         return {
             'member': {
-                'search_url': '/api/member/search'
+                'search_url': '/api/member/search?schema=1'
             }
         }
 

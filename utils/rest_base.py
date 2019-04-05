@@ -229,3 +229,13 @@ class BaseModelViewSet(CreateModelMixin,
 class BaseApiView(APIView):
     metadata_class = BaseModelMetadata
     model_class = None
+
+    def get_context_data(self, **kwargs):
+        pass
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        if request.GET.get('schema', None) == '1':
+            columns = self.metadata_class().determine_metadata(request, self)
+            context.update(columns)
+        return Response(context)

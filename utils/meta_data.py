@@ -93,4 +93,5 @@ class BaseModelMetadata(SimpleMetadata):
         field_info['required'] = field.blank
         field_info['read_only'] = field.editable
         field_info['label'] = field.verbose_name
+        field_info['searchable'] = False
         return field_info

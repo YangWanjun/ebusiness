@@ -34,6 +34,9 @@ class MeApiView(BaseApiView):
 class SearchMemberView(BaseApiView):
     model_class = models.SearchMember
 
+    def get_list_display(self):
+        return 'name', 'member_type', 'join_date', 'salesperson_name', 'division_name', 'partner_name'
+
     def get_context_data(self, **kwargs):
         search = self.request.GET.get('search', None)
         members = biz.search_member_by_name(search)

@@ -83,6 +83,8 @@ select m.id
      group by t1.member_id
             , t1.name
             , t1.member_type
+            , t1.partner_id
+            , t1.partner_name
   ) t on m.id = t.member_id
   left join eb_membersalespersonperiod msp1 on msp1.is_deleted = 0 and msp1.member_id = t.member_id and t.end_date between msp1.start_date and ifnull(msp1.end_date, '9999-12-31')
   left join eb_salesperson sales on sales.id = msp1.salesperson_id
@@ -91,7 +93,12 @@ select m.id
   left join eb_section department on department.id = msp2.section_id
   left join eb_section section on division.id = msp2.subsection_id
  order by m.id
+        , m.name
+        , t.member_type
         , t.join_date
+        , t.end_date
+        , t.partner_id
+        , t.partner_name
 ;
 
 END //

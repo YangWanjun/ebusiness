@@ -3,7 +3,6 @@ import datetime
 from django.db import models
 from django.db.models import PROTECT
 
-from master.models import Bank, BankBranch
 from utils import constants
 from utils.models import BaseModel, AbstractMember, BaseView
 
@@ -93,13 +92,13 @@ class SearchMember(BaseView):
     salesperson_id = models.PositiveIntegerField(blank=True, null=True, verbose_name="営業ＩＤ")
     salesperson_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="営業員")
     division_id = models.PositiveIntegerField(blank=True, null=True, verbose_name="事業部ＩＤ")
-    division_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="事業部名称")
+    division_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="事業部")
     department_id = models.PositiveIntegerField(blank=True, null=True, verbose_name="部署ＩＤ")
-    department_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="部署名称")
+    department_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="部署")
     section_id = models.PositiveIntegerField(blank=True, null=True, verbose_name="課ＩＤ")
-    section_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="課名称")
+    section_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="課")
     partner_id = models.PositiveIntegerField(blank=True, null=True, verbose_name="協力会社ＩＤ")
-    partner_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="協力会社名称")
+    partner_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="協力会社")
 
     class Meta:
         managed = False

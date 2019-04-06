@@ -12,7 +12,7 @@ def main(path, user, pwd, db, host):
                 if os.path.splitext(filename)[1].upper() == '.SQL':
                     s = get_cmd(filename, user, pwd, db, host)
                     f_win.write(s + '\n')
-                    s = get_cmd(filename, user, pwd, db, '127.0.0.1')
+                    s = get_cmd(filename, user, pwd, db, host)
                     f_mac.write(s + '\n')
 
 
@@ -28,8 +28,8 @@ def get_cmd(filename, user, pwd, db, host=None):
 
 if __name__ == '__main__':
     ddl_path = os.path.join(os.path.dirname(__file__), 'SQL')
-    p_user = 'root'
-    p_pwd = 'root'
-    p_db = 'eb_sales'
-    p_host = '192.168.99.100'
-    main(ddl_path, p_user, p_pwd, p_db, p_host)
+    in_user = input('ユーザー名を入力してください(default: root)：') or 'root'
+    in_pwd = input('パスワードを入力してください(default: root)：') or 'root'
+    in_db = input('データベースを入力してください(default: eb_sales)：') or 'eb_sales'
+    in_host = input('ホストを入力してください(default: 192.168.99.100)：') or '192.168.99.100'
+    main(ddl_path, in_user, in_pwd, in_db, in_host)

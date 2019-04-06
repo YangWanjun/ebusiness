@@ -2,6 +2,7 @@ from collections import OrderedDict
 
 from django.db import models
 
+from rest_framework import serializers
 from rest_framework.metadata import SimpleMetadata
 from rest_framework.utils.field_mapping import ClassLookupDict
 
@@ -14,18 +15,39 @@ class BaseSimpleMetadata(SimpleMetadata):
     def determine_metadata(self, request, view):
         self.schema_class = view.schema_class
         metadata = OrderedDict()
-        metadata['name'] = view.get_view_name()
-        metadata['description'] = view.get_view_description()
-        metadata['renders'] = [renderer.media_type for renderer in view.renderer_classes]
-        metadata['parses'] = [parser.media_type for parser in view.parser_classes]
+        # metadata['name'] = view.get_view_name()
+        # metadata['description'] = view.get_view_description()
+        # metadata['renders'] = [renderer.media_type for renderer in view.renderer_classes]
+        # metadata['parses'] = [parser.media_type for parser in view.parser_classes]
         if hasattr(view, 'get_serializer'):
-            actions = self.determine_actions(request, view)
-            if actions:
-                metadata['actions'] = actions
+            serializer = view.get_serializer()
+            metadata['columns'] = self.get_serializer_info(serializer, view)
         return metadata
 
-    def get_field_info(self, field):
+    def get_serializer_info(self, serializer, view=None):
+        """
+        Given an instance of a serializer, return a dictionary of metadata
+        about its fields.
+        """
+        if hasattr(serializer, 'child'):
+            # If this is a `ListSerializer` then we want to examine the
+            # underlying child serializer instance instead.
+            serializer = serializer.child
+        return list([
+            self.get_field_info(field, view)
+            for field in serializer.fields.values()
+            if not isinstance(field, serializers.HiddenField)
+        ])
+
+    def get_field_info(self, field, view=None):
         field_info = super(BaseSimpleMetadata, self).get_field_info(field)
+        field_info['name'] = field.field_name
+        if view:
+            field_info['visible'] = field.field_name in view.get_list_display()
+        else:
+            field_info['visible'] = False
+        field_info['sortable'] = False
+        field_info['searchable'] = False
         if self.schema_class and self.schema_class.get_extra_schema():
             extra = self.schema_class.get_extra_schema().get(field.field_name, None)
             if extra and isinstance(extra, dict):
@@ -67,17 +89,17 @@ class BaseModelMetadata(SimpleMetadata):
 
     def determine_metadata(self, request, view):
         metadata = OrderedDict()
-        metadata['columns'] = self.get_model_info(view.model_class)
+        metadata['columns'] = self.get_model_info(view.model_class, view)
         return metadata
 
-    def get_model_info(self, model):
+    def get_model_info(self, model, view=None):
         if not model:
             return list()
         return [
-            self.get_field_info(field) for field in model._meta.fields
+            self.get_field_info(field, view) for field in model._meta.fields
         ]
 
-    def get_field_info(self, field):
+    def get_field_info(self, field, view=None):
         """Modelの項目定義を取得する
 
         :param field:
@@ -93,5 +115,9 @@ class BaseModelMetadata(SimpleMetadata):
         field_info['required'] = field.blank
         field_info['read_only'] = field.editable
         field_info['label'] = field.verbose_name
+        if view:
+            field_info['visible'] = field.name in view.get_list_display()
+        else:
+            field_info['visible'] = False
         field_info['searchable'] = False
         return field_info

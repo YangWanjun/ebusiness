@@ -145,18 +145,18 @@ class BaseListModelMixin(ListModelMixin):
         schema = request.GET.get('schema', '1') or '1'
         if schema == '1':
             queryset = self.filter_queryset(self.get_queryset())
+            data = self.metadata_class().determine_metadata(request, self)
+            columns = data.get('columns', list()) if data else list()
 
             page = self.paginate_queryset(queryset)
             if page is not None:
                 serializer = self.get_serializer(page, many=True)
-                columns = self.get_columns_definition(serializer.child)
                 return self.get_paginated_response(serializer.data, columns)
 
             serializer = self.get_serializer(queryset, many=True)
-            columns = self.get_columns_definition(serializer.child)
             return Response(OrderedDict([
                 ('count', queryset.count()),
-                ('columns', columns or []),
+                ('columns', columns),
                 ('results', serializer.data),
             ]))
         else:
@@ -166,30 +166,13 @@ class BaseListModelMixin(ListModelMixin):
 class BaseRetrieveModelMixin(RetrieveModelMixin):
     choice_classes = {}
 
-    @classmethod
-    def get_schema(cls, serializer):
-        columns = []
-        for name, field in serializer.get_fields().items():
-            is_numeric = isinstance(field, (IntegerField, DecimalField))
-            choices = field.choices if isinstance(field, ChoiceField) else dict()
-            columns.append({
-                'id': name,
-                'numeric': is_numeric,
-                'label': field.label,
-                'choices': choices,
-                'choiceClasses': cls.choice_classes.get(name, {}),
-            })
-        return columns
-
     def retrieve(self, request, *args, **kwargs):
         if request.GET.get('schema') == '1':
             instance = self.get_object()
             serializer = self.get_serializer(instance)
-            columns = self.get_schema(serializer)
+            columns = self.metadata_class().determine_metadata(request, self)
             data = serializer.data
-            data.update({
-                'columns': columns,
-            })
+            data.update(columns)
             return Response(data)
         else:
             return super(BaseRetrieveModelMixin, self).retrieve(request, *args, **kwargs)
@@ -229,6 +212,9 @@ class BaseModelViewSet(CreateModelMixin,
 class BaseApiView(APIView):
     metadata_class = BaseModelMetadata
     model_class = None
+
+    def get_list_display(self):
+        return []
 
     def get_context_data(self, **kwargs):
         pass

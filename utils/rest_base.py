@@ -115,21 +115,22 @@ class BaseRetrieveModelMixin(RetrieveModelMixin):
             return super(BaseRetrieveModelMixin, self).retrieve(request, *args, **kwargs)
 
 
-class BaseReadOnlyModelViewSet(BaseRetrieveModelMixin,
-                               BaseListModelMixin,
-                               GenericViewSet):
-    pagination_class = MyLimitOffsetPagination
-
-    def get_paginated_response(self, data, columns=None):
-        assert self.paginator is not None
-        return self.paginator.get_paginated_response(data, columns)
-
-
 class BaseModelSchemaView(object):
 
     @classmethod
     def get_extra_schema(cls):
         pass
+
+
+class BaseReadOnlyModelViewSet(BaseRetrieveModelMixin,
+                               BaseListModelMixin,
+                               GenericViewSet):
+    pagination_class = MyLimitOffsetPagination
+    schema_class = BaseModelSchemaView
+
+    def get_paginated_response(self, data, columns=None):
+        assert self.paginator is not None
+        return self.paginator.get_paginated_response(data, columns)
 
 
 class BaseModelViewSet(CreateModelMixin,

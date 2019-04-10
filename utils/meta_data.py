@@ -11,6 +11,7 @@ from utils import common
 
 class BaseSimpleMetadata(SimpleMetadata):
     schema_class = None
+    serializer = None
 
     def determine_metadata(self, request, view):
         self.schema_class = view.schema_class
@@ -20,8 +21,8 @@ class BaseSimpleMetadata(SimpleMetadata):
         # metadata['renders'] = [renderer.media_type for renderer in view.renderer_classes]
         # metadata['parses'] = [parser.media_type for parser in view.parser_classes]
         if hasattr(view, 'get_serializer'):
-            serializer = view.get_serializer()
-            metadata['columns'] = self.get_serializer_info(serializer, view)
+            self.serializer = view.get_serializer()
+            metadata['columns'] = self.get_serializer_info(self.serializer, view)
         return metadata
 
     def get_serializer_info(self, serializer, view=None):
@@ -46,13 +47,56 @@ class BaseSimpleMetadata(SimpleMetadata):
             field_info['visible'] = field.field_name in view.get_list_display()
         else:
             field_info['visible'] = False
-        field_info['sortable'] = False
-        field_info['searchable'] = False
+        if view and view.get_list_display_links() and field.field_name in view.get_list_display_links():
+            field_info['url_field'] = 'url'
+        else:
+            field_info['url_field'] = None
+        # 並び替え
+        sort_field = self.get_sort_field(field)
+        if sort_field:
+            field_info['sortable'] = True
+            field_info['sort_field'] = sort_field
+        # 検索できるかどうか
+        if self.is_searchable(field, view):
+            field_info['searchable'] = True
+            field_info['search_type'] = self.get_search_type(field, view)
         if self.schema_class and self.schema_class.get_extra_schema():
             extra = self.schema_class.get_extra_schema().get(field.field_name, None)
             if extra and isinstance(extra, dict):
                 field_info.update(extra)
         return field_info
+
+    def get_sort_field(self, field):
+        """並び替え時の並び替え項目名を取得する
+
+        :param field:
+        :return:
+        """
+        if field.field_name in [f.name for f in self.serializer.Meta.model._meta.fields]:
+            # 項目がＤＢ項目の場合、並び替え可
+            return field.field_name
+        elif hasattr(self.serializer, 'get_' + field.field_name):
+            method = getattr(self.serializer, 'get_' + field.field_name)
+            if hasattr(method, 'sort_field'):
+                return getattr(method, 'sort_field')
+        return None
+
+    def is_searchable(self, field, view=None):
+        """検索できるかどうか
+
+        :param field:
+        :param view:
+        :return:
+        """
+        return (field.field_name in view.filter_fields) if view else False
+
+    def get_search_type(self, field, view=None):
+        if view.filter_class:
+            fields = view.filter_class.Meta.fields
+            lookups = fields.get(field.field_name)
+            return lookups[0] if lookups else None
+        else:
+            return None
 
 
 class BaseModelMetadata(SimpleMetadata):

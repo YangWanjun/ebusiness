@@ -1,5 +1,4 @@
 import datetime
-import sys
 from collections import OrderedDict
 
 from django.utils import timezone
@@ -9,13 +8,11 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.mixins import ListModelMixin, \
     RetrieveModelMixin, CreateModelMixin, UpdateModelMixin, DestroyModelMixin
-from rest_framework.serializers import IntegerField, DecimalField, DateTimeField, ChoiceField, \
-    ModelSerializer
+from rest_framework.serializers import DateTimeField, ModelSerializer
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.relations import PKOnlyObject
 from rest_framework.response import Response
 
-from utils import constants
 from utils.meta_data import BaseModelMetadata
 
 
@@ -80,66 +77,6 @@ class BaseListModelMixin(ListModelMixin):
 
     def get_list_display_links(self):
         return self.list_display_links
-
-    def get_search_fields(self):
-        return self.filter_fields
-
-    def get_search_type(self, field_name):
-        if self.filter_class:
-            fields = self.filter_class.Meta.fields
-            lookups = fields.get(field_name)
-            return lookups[0] if lookups else None
-        else:
-            return None
-
-    def get_columns_definition(self, serializer):
-        columns = []
-        list_display = self.get_list_display()
-        search_fields = self.get_search_fields()
-        db_columns = [f.name for f in serializer.Meta.model._meta.fields]
-
-        # ソート項目を取得する
-        def get_sort_field(n, s):
-            if n in db_columns:
-                return n
-            elif hasattr(s, 'get_' + n):
-                method = getattr(s, 'get_' + n)
-                if hasattr(method, 'sort_field'):
-                    return getattr(method, 'sort_field')
-            return None
-
-        def get_index(lst, val):
-            try:
-                return lst.index(val)
-            except ValueError:
-                return sys.maxsize
-
-        for name, field in serializer.get_fields().items():
-            is_numeric = isinstance(field, (IntegerField, DecimalField))
-            is_boolean = name.startswith('is_') or name.startswith('has_')
-            choices = field.choices if isinstance(field, ChoiceField) else dict()
-            choices = dict(constants.CHOICE_BOOLEAN) if is_boolean else choices
-            sort_field = get_sort_field(name, serializer)
-            if self.get_list_display_links() and name in self.get_list_display_links():
-                url_field = 'url'
-            else:
-                url_field = None
-            columns.append({
-                'id': name,
-                'urlField': url_field,
-                'numeric': is_numeric,
-                'boolean': is_boolean,
-                'label': field.label,
-                'visible': name in list_display,
-                'choices': choices,
-                'choiceClasses': self.choice_classes.get(name, {}),
-                'searchable': name in search_fields,
-                'searchType': self.get_search_type(name),
-                'sortable': True if sort_field else False,
-                'sort_field': sort_field,
-            })
-        sort_list = [get_index(list_display, c.get('id')) for c in columns]
-        return [x for x, _ in sorted(zip(columns, sort_list), key=lambda pair: pair[1])]
 
     def list(self, request, *args, **kwargs):
         schema = request.GET.get('schema', '1') or '1'

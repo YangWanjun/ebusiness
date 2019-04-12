@@ -55,4 +55,6 @@ class ProjectMemberSerializer(BaseModelSerializer):
         return '{} {}'.format(obj.member.first_name, obj.member.last_name)
 
     def get_is_working(self, obj):
-        return obj.end_date is None or obj.end_date >= timezone.now().date()
+        return obj and obj.end_date is None or obj.end_date >= timezone.now().date()
+
+    get_is_working.field_type = 'boolean'

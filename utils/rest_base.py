@@ -84,6 +84,7 @@ class BaseListModelMixin(ListModelMixin):
             queryset = self.filter_queryset(self.get_queryset())
             data = self.metadata_class().determine_metadata(request, self)
             columns = data.get('columns', list()) if data else list()
+            fieldsets = data.get('fieldsets', list()) if data else list()
 
             page = self.paginate_queryset(queryset)
             if page is not None:
@@ -94,6 +95,7 @@ class BaseListModelMixin(ListModelMixin):
             return Response(OrderedDict([
                 ('count', queryset.count()),
                 ('columns', columns),
+                ('fieldsets', fieldsets),
                 ('results', serializer.data),
             ]))
         else:
@@ -116,6 +118,28 @@ class BaseRetrieveModelMixin(RetrieveModelMixin):
 
 
 class BaseModelSchemaView(object):
+    fieldsets = ()
+
+    def __init__(self, view):
+        self.view = view
+        self.serializer = None
+        if hasattr(view, 'get_serializer'):
+            self.serializer = view.get_serializer()
+
+    def get_fieldsets(self):
+        if self.fieldsets:
+            return self.fieldsets
+        # elif self.view.serializer_class.Meta.fields == '__all__':
+        #     model = self.view.serializer_class.Meta.model
+        #     model_fields = [field.name for field in model._meta.fields]
+        #     if self.serializer:
+        #         model_fields.extend([
+        #             field_name for field_name in self.serializer.fields.keys()
+        #             if field_name not in model_fields
+        #         ])
+        #     return model_fields
+        else:
+            return tuple()
 
     @classmethod
     def get_extra_schema(cls):

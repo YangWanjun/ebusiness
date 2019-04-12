@@ -119,7 +119,7 @@ class Project(BaseModel):
 
 class ProjectMember(BaseModel):
     project = models.ForeignKey(Project, on_delete=models.PROTECT, verbose_name='案件')
-    member = models.ForeignKey(Member, on_delete=models.PROTECT, verbose_name="名前")
+    member = models.ForeignKey(Member, on_delete=models.PROTECT, verbose_name="メンバー")
     start_date = models.DateField(blank=False, null=True, verbose_name="開始日")
     end_date = models.DateField(blank=False, null=True, verbose_name="終了日")
     price = models.IntegerField(default=0, verbose_name="単価")
@@ -127,7 +127,9 @@ class ProjectMember(BaseModel):
     max_hours = models.DecimalField(max_digits=5, decimal_places=2, default=180, verbose_name="最大時間")
     plus_per_hour = models.IntegerField(default=0, verbose_name="増（円）")
     minus_per_hour = models.IntegerField(default=0, verbose_name="減（円）")
-    hourly_pay = models.IntegerField(blank=True, null=True, verbose_name="時給")
+    hourly_pay = models.IntegerField(
+        blank=True, null=True, verbose_name="時給", help_text='時給が設定したら、単価などの精算条件が無視される'
+    )
     role = models.CharField(max_length=2, default="PG", choices=constants.CHOICE_PROJECT_ROLE, verbose_name="作業区分")
     contract_type = models.CharField(
         max_length=2, blank=True, null=True, choices=constants.CHOICE_CLIENT_CONTRACT_TYPE,

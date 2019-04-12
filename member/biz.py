@@ -29,4 +29,10 @@ def search_member_by_name(keyword):
     with connection.cursor() as cursor:
         cursor.callproc('sp_search_member', (keyword,))
         results = common.dictfetchall(cursor)
-    return results
+    # ＩＤ重複したデータを消す
+    members = []
+    for item in results:
+        if len(members) > 0 and item.get('id') == members[-1].get('id'):
+            members.pop()
+        members.append(item)
+    return members

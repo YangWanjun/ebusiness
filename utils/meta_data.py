@@ -10,11 +10,12 @@ from utils import common
 
 
 class BaseSimpleMetadata(SimpleMetadata):
-    schema_class = None
+    schema_object = None
     serializer = None
 
     def determine_metadata(self, request, view):
-        self.schema_class = view.schema_class
+        if view.schema_class:
+            self.schema_object = view.schema_class(view)
         metadata = OrderedDict()
         # metadata['name'] = view.get_view_name()
         # metadata['description'] = view.get_view_description()
@@ -22,7 +23,24 @@ class BaseSimpleMetadata(SimpleMetadata):
         # metadata['parses'] = [parser.media_type for parser in view.parser_classes]
         if hasattr(view, 'get_serializer'):
             self.serializer = view.get_serializer()
-            metadata['columns'] = self.get_serializer_info(self.serializer, view)
+            columns = self.get_serializer_info(self.serializer, view)
+            metadata['columns'] = columns
+            metadata['fieldsets'] = self.schema_object.get_fieldsets()
+            if not metadata['fieldsets']:
+                if view.serializer_class.Meta.fields == '__all__':
+                    model = view.serializer_class.Meta.model
+                    model_fields = [field.name for field in model._meta.fields]
+                    model_fields.extend([
+                        field_name for field_name in self.serializer.fields.keys()
+                        if field_name not in model_fields
+                    ])
+                    sort_list = []
+                    for i, col in enumerate(columns):
+                        try:
+                            sort_list.append(model_fields.index(col['name']))
+                        except ValueError:
+                            sort_list.append(10000 + i)
+                    metadata['columns'] = [c for c, _ in sorted(zip(columns, sort_list), key=lambda pair: pair[1])]
         return metadata
 
     def get_serializer_info(self, serializer, view=None):
@@ -43,6 +61,9 @@ class BaseSimpleMetadata(SimpleMetadata):
     def get_field_info(self, field, view=None):
         field_info = super(BaseSimpleMetadata, self).get_field_info(field)
         field_info['name'] = field.field_name
+        field_type = self.test_field_type(field)
+        if field_type:
+            field_info['type'] = field_type
         if view:
             field_info['visible'] = field.field_name in view.get_list_display()
         else:
@@ -56,15 +77,25 @@ class BaseSimpleMetadata(SimpleMetadata):
         if sort_field:
             field_info['sortable'] = True
             field_info['sort_field'] = sort_field
-        # 検索できるかどうか
+        # 検索
         if self.is_searchable(field, view):
             field_info['searchable'] = True
             field_info['search_type'] = self.get_search_type(field, view)
-        if self.schema_class and self.schema_class.get_extra_schema():
-            extra = self.schema_class.get_extra_schema().get(field.field_name, None)
+        if self.schema_object and self.schema_object.get_extra_schema():
+            extra = self.schema_object.get_extra_schema().get(field.field_name, None)
             if extra and isinstance(extra, dict):
                 field_info.update(extra)
         return field_info
+
+    def test_field_type(self, field):
+        if isinstance(field, serializers.SerializerMethodField):
+            method = getattr(self.serializer, field.method_name)
+            if hasattr(method, 'field_type'):
+                return method.field_type
+            else:
+                return 'string'
+        else:
+            return None
 
     def get_sort_field(self, field):
         """並び替え時の並び替え項目名を取得する

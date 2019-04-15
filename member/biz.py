@@ -26,11 +26,13 @@ def search_member_by_name(keyword):
     :param keyword: 名前またはその一部
     :return:
     """
+    members = []
+    if not keyword:
+        return members
     with connection.cursor() as cursor:
         cursor.callproc('sp_search_member', (keyword,))
         results = common.dictfetchall(cursor)
     # ＩＤ重複したデータを消す
-    members = []
     for item in results:
         if len(members) > 0 and item.get('id') == members[-1].get('id'):
             members.pop()

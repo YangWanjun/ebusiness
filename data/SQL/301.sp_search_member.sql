@@ -10,7 +10,7 @@ BEGIN
 
 select m.id
      , m.name
-     , t.member_type
+     , cast(t.member_type as char(1)) as member_type
      , t.join_date
      , t.end_date
      , sales.id as salesperson_id

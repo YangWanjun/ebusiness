@@ -1,8 +1,8 @@
 DELIMITER //
 
-DROP FUNCTION IF EXISTS get_night_allowance //
+DROP FUNCTION IF EXISTS get_night_allowance_new //
 
-CREATE FUNCTION get_night_allowance (night_days integer) RETURNS integer
+CREATE FUNCTION get_night_allowance_new (night_days integer) RETURNS integer
 BEGIN
 
     DECLARE ret_value integer;  /* 戻り値 */

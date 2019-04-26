@@ -1,9 +1,9 @@
 DELIMITER //
 
-DROP FUNCTION IF EXISTS get_employment_insurance //
+DROP FUNCTION IF EXISTS get_employment_insurance_new //
 
 /* 雇用保険を取得する */
-CREATE FUNCTION get_employment_insurance (
+CREATE FUNCTION get_employment_insurance_new (
     member_type integer,
     cost integer,
     allowance integer,

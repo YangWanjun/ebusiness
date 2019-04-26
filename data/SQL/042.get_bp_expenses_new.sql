@@ -4,10 +4,10 @@
 
 DELIMITER //
 
-DROP FUNCTION IF EXISTS get_bp_expenses //
+DROP FUNCTION IF EXISTS get_bp_expenses_new //
 
 /* ＢＰメンバーの諸経費を取得する */
-CREATE FUNCTION get_bp_expenses (
+CREATE FUNCTION get_bp_expenses_new (
     in_project_member_id integer,
     in_year char(4),
     in_month char(2)

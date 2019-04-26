@@ -1,9 +1,9 @@
 DELIMITER //
 
-DROP FUNCTION IF EXISTS get_health_insurance //
+DROP FUNCTION IF EXISTS get_health_insurance_new //
 
 /* 健康保険を取得する */
-CREATE FUNCTION get_health_insurance (
+CREATE FUNCTION get_health_insurance_new (
     endowment_insurance integer,
     cost integer,
     allowance integer,

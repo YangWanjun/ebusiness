@@ -1,8 +1,8 @@
 DELIMITER //
 
-DROP FUNCTION IF EXISTS get_attendance_total_hours //
+DROP FUNCTION IF EXISTS get_attendance_total_hours_new //
 
-CREATE FUNCTION get_attendance_total_hours (total_hours decimal(5, 2)) RETURNS DECIMAL(5, 2)
+CREATE FUNCTION get_attendance_total_hours_new (total_hours decimal(5, 2)) RETURNS DECIMAL(5, 2)
 BEGIN
 
     DECLARE ret_value DECIMAL(5, 2);    /* 戻り値 */

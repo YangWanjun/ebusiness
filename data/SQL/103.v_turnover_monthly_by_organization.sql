@@ -2,7 +2,7 @@ CREATE OR REPLACE VIEW v_turnover_monthly_by_organization AS
 select concat(pr.year, pr.month) as id
      , pr.year
      , pr.month
-     , get_division(p.department_id) as division_id
+     , get_division_new(p.department_id) as division_id
      -- , (select name from eb_section where id = get_division(p.department_id)) as name1
      , p.department_id  -- 部署
      -- , (select name from eb_section where id = p.department_id) as name2

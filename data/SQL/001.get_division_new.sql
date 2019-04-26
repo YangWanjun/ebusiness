@@ -1,9 +1,9 @@
 DELIMITER //
 
-DROP FUNCTION IF EXISTS get_division //
+DROP FUNCTION IF EXISTS get_division_new //
 
 /* 部署の所属している事業部を取得 */
-CREATE FUNCTION get_division (
+CREATE FUNCTION get_division_new (
     in_organization_id integer
 )
 RETURNS INTEGER

@@ -1,9 +1,9 @@
 DELIMITER //
 
-DROP FUNCTION IF EXISTS get_overtime_cost //
+DROP FUNCTION IF EXISTS get_overtime_cost_new //
 
 /* 残業時間を取得する */
-CREATE FUNCTION get_overtime_cost (raw_hours DECIMAL(5, 2),
+CREATE FUNCTION get_overtime_cost_new (raw_hours DECIMAL(5, 2),
                               min_hours DECIMAL(5, 2),
                               max_hours DECIMAL(5, 2),
                               is_hourly_pay boolean,

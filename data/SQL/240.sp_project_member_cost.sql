@@ -8,6 +8,7 @@ CREATE PROCEDURE sp_project_member_cost (
     in_project_member_id integer,   -- アサインＩＤ
     in_year char(4),                -- 対象年
     in_month char(2),               -- 対象月
+    in_business_days integer,       -- 営業日数
     in_total_hours decimal(5,2),    -- 出金時間
     in_allowance integer,           -- 手当
     in_night_days integer,          -- 深夜日数
@@ -80,7 +81,16 @@ select t.member_type
              , c.endowment_insurance
              , in_traffic_cost as traffic_cost
              , get_bp_expenses(in_project_member_id, in_year, in_month) as expenses
-             , get_overtime_cost(tmp_total_hours, IFNULL(bp_h.allowance_time_min, c.allowance_time_min), c.allowance_time_max, c.is_hourly_pay, 0, p.is_reserve, c.allowance_absenteeism, c.allowance_overtime) as overtime_cost
+             , get_overtime_cost(
+                 tmp_total_hours,
+                 IFNULL(bp_h.allowance_time_min, c.allowance_time_min),
+                 c.allowance_time_max,
+                 c.is_hourly_pay,
+                 0,
+                 p.is_reserve,
+                 c.allowance_absenteeism,
+                 c.allowance_overtime
+             ) as overtime_cost
           FROM eb_contract c
           join eb_projectmember pm on c.member_id = pm.member_id and pm.id = in_project_member_id
           join eb_project p on p.id = pm.project_id
@@ -114,7 +124,22 @@ select t.member_type
              , '0' as endowment_insurance
 			 , 0 as traffic_cost
              , IFNULL(in_expenses, 0) as expenses
-             , get_overtime_cost(tmp_total_hours, IFNULL(bp_h.allowance_time_min, c.allowance_time_min), c.allowance_time_max, c.is_hourly_pay, c.is_fixed_cost, p.is_reserve, c.allowance_absenteeism, c.allowance_overtime) as overtime_cost
+             , get_overtime_cost(
+                 tmp_total_hours,
+                 CASE c.calculate_type
+                     WHEN '01' THEN 160
+                     WHEN '02' THEN in_business_days * 8
+                     WHEN '03' THEN in_business_days * 7.9
+                     WHEN '04' THEN in_business_days * 7.75
+                     ELSE IFNULL(bp_h.allowance_time_min, c.allowance_time_min)
+                 END,
+                 c.allowance_time_max,
+                 c.is_hourly_pay,
+                 c.is_fixed_cost,
+                 p.is_reserve,
+                 c.allowance_absenteeism,
+                 c.allowance_overtime
+             ) as overtime_cost
           from eb_bp_contract c
           join eb_projectmember pm on c.member_id = pm.member_id and pm.id = in_project_member_id
           join eb_project p on p.id = pm.project_id

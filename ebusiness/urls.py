@@ -19,12 +19,14 @@ from django.contrib import admin
 from rest_framework import routers
 from rest_framework_jwt.views import obtain_jwt_token
 
+from master import views as master_api
 from member import views as member_api
 from partner import views as partner_api
 from project import views as project_api
 from turnover import views as turnover_api
 
 router = routers.DefaultRouter()
+router.register(r'project-stage', master_api.ProjectStageViewSet)
 router.register(r'member', member_api.MemberViewSet)
 router.register(r'partner', partner_api.PartnerViewSet)
 router.register(r'client', project_api.ClientViewSet)

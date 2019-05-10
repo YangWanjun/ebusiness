@@ -1,4 +1,9 @@
+import operator
 import django_filters
+
+from functools import reduce
+
+from django.db.models import Q
 
 from . import models, serializers
 from utils import constants
@@ -12,6 +17,29 @@ class ClientViewSet(BaseModelViewSet):
     list_display = ('name',)
     list_display_links = ('name',)
     filter_fields = ('name',)
+
+    def get_queryset(self):
+        search = self.request.GET.get('search')
+        if not search:
+            return self.queryset
+        else:
+            return self.queryset.filter(name__icontains=search)
+
+
+class ClientMemberViewSet(BaseModelViewSet):
+    queryset = models.ClientMember.objects.all()
+    serializer_class = serializers.ClientMemberSerializer
+    list_display = ('name', 'client__name', 'email')
+
+    def get_queryset(self):
+        search = self.request.GET.get('search')
+        if not search:
+            return self.queryset
+        else:
+            for bit in search.split():
+                or_queries = [Q(**{orm_lookup: bit}) for orm_lookup in ('name__icontains', 'client__name__icontains')]
+                queryset = self.queryset.filter(reduce(operator.or_, or_queries))
+            return queryset
 
 
 class VProjectFilter(django_filters.FilterSet):

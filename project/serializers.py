@@ -14,6 +14,7 @@ class ClientSerializer(BaseModelSerializer):
 
 
 class ClientMemberSerializer(BaseModelSerializer):
+    client__name = serializers.CharField(source='client.name', read_only=True, label='所属会社')
 
     class Meta:
         model = models.ClientMember
@@ -21,7 +22,6 @@ class ClientMemberSerializer(BaseModelSerializer):
 
 
 class ProjectSerializer(BaseModelSerializer):
-    client = ClientSerializer()
     client__name = serializers.CharField(source='client.name', read_only=True, label='関連会社')
     manager__name = serializers.CharField(source='manager.name', read_only=True, label='案件責任者')
     contact__name = serializers.CharField(source='contact.name', read_only=True, label='案件連絡者')

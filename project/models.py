@@ -100,7 +100,7 @@ class Project(BaseModel):
         ClientMember, blank=True, null=True, db_column='middleman_id', on_delete=models.PROTECT,
         related_name="contact_set", verbose_name="案件連絡者"
     )
-    status = models.IntegerField(choices=constants.CHOICE_PROJECT_STATUS, verbose_name="ステータス")
+    status = models.CharField(max_length=1, choices=constants.CHOICE_PROJECT_STATUS, verbose_name="ステータス")
     created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
     updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
 

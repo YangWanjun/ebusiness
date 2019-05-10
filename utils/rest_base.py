@@ -1,8 +1,10 @@
 import datetime
 from collections import OrderedDict
 
+from django.db.models.deletion import ProtectedError
 from django.utils import timezone
 
+from rest_framework import status as rest_status
 from rest_framework.fields import SkipField
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
@@ -13,6 +15,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.relations import PKOnlyObject
 from rest_framework.response import Response
 
+from utils import constants
 from utils.meta_data import BaseModelMetadata
 
 
@@ -117,6 +120,21 @@ class BaseRetrieveModelMixin(RetrieveModelMixin):
             return super(BaseRetrieveModelMixin, self).retrieve(request, *args, **kwargs)
 
 
+class BaseDestroyModelMixin(DestroyModelMixin):
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            return super(BaseDestroyModelMixin, self).destroy(request, *args, **kwargs)
+        except ProtectedError as ex:
+            if hasattr(ex, 'protected_objects'):
+                message = constants.ERROR_DELETE_PROTECTED.format(
+                    name=ex.protected_objects.model._meta.verbose_name
+                )
+            else:
+                message = constants.ERROR_DELETE_PROTECTED.format('データ')
+            return Response({'detail': message}, status=rest_status.HTTP_400_BAD_REQUEST)
+
+
 class BaseModelSchemaView(object):
     fieldsets = ()
 
@@ -160,7 +178,7 @@ class BaseReadOnlyModelViewSet(BaseRetrieveModelMixin,
 class BaseModelViewSet(CreateModelMixin,
                        BaseRetrieveModelMixin,
                        UpdateModelMixin,
-                       DestroyModelMixin,
+                       BaseDestroyModelMixin,
                        BaseListModelMixin,
                        GenericViewSet):
     pagination_class = MyLimitOffsetPagination

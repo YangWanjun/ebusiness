@@ -164,3 +164,5 @@ CHOICE_MEMBER_TYPE = (
     ('6', "アルバイト"),
     ('7', "正社員（試用期間）")
 )
+
+ERROR_DELETE_PROTECTED = '関連付けの{name}が存在して、削除できません。'

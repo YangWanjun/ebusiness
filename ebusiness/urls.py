@@ -28,6 +28,7 @@ from turnover import views as turnover_api
 router = routers.DefaultRouter()
 router.register(r'project-stage', master_api.ProjectStageViewSet)
 router.register(r'member', member_api.MemberViewSet)
+router.register(r'organization', member_api.OrganizationViewSet)
 router.register(r'partner', partner_api.PartnerViewSet)
 router.register(r'client', project_api.ClientViewSet)
 router.register(r'client-member', project_api.ClientMemberViewSet)

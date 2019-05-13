@@ -60,6 +60,9 @@ class ProjectStage(BaseModel):
     name = models.CharField(max_length=15, unique=True, verbose_name="作業工程名称")
     created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
     updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
+    deleted_dt = models.DateTimeField(
+        blank=True, null=True, editable=False, db_column='deleted_date', verbose_name="更新日時"
+    )
 
     class Meta:
         managed = False

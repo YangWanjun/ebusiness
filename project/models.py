@@ -1,7 +1,7 @@
 from django.db import models
 
 from master.models import ProjectStage
-from member.models import Member
+from member.models import Member, Organization
 from utils import constants
 from utils.models import AbstractCompany, BaseModel, BaseView
 
@@ -25,6 +25,9 @@ class Client(AbstractCompany):
         max_length=1, default='0', choices=constants.CHOICE_DECIMAL_TYPE,
         verbose_name="小数の処理区分"
     )
+    deleted_dt = models.DateTimeField(
+        blank=True, null=True, editable=False, db_column='deleted_date', verbose_name="更新日時"
+    )
 
     class Meta:
         managed = False
@@ -42,6 +45,9 @@ class ClientMember(BaseModel):
     client = models.ForeignKey(Client, on_delete=models.PROTECT, verbose_name="所属会社")
     created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
     updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
+    deleted_dt = models.DateTimeField(
+        blank=True, null=True, editable=False, db_column='deleted_date', verbose_name="更新日時"
+    )
 
     class Meta:
         managed = False
@@ -100,9 +106,15 @@ class Project(BaseModel):
         ClientMember, blank=True, null=True, db_column='middleman_id', on_delete=models.PROTECT,
         related_name="contact_set", verbose_name="案件連絡者"
     )
+    organization = models.ForeignKey(
+        Organization, blank=True, null=True, db_column='department_id', verbose_name="所属部署", on_delete=models.PROTECT,
+    )
     status = models.CharField(max_length=1, choices=constants.CHOICE_PROJECT_STATUS, verbose_name="ステータス")
     created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
     updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
+    deleted_dt = models.DateTimeField(
+        blank=True, null=True, editable=False, db_column='deleted_date', verbose_name="更新日時"
+    )
 
     class Meta:
         managed = False
@@ -142,6 +154,9 @@ class ProjectMember(BaseModel):
     )
     created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
     updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
+    deleted_dt = models.DateTimeField(
+        blank=True, null=True, editable=False, db_column='deleted_date', verbose_name="更新日時"
+    )
 
     class Meta:
         managed = False

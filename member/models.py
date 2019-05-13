@@ -26,6 +26,9 @@ class Member(AbstractMember):
     avatar_url = models.CharField(blank=True, null=True, max_length=500, verbose_name="自分の写真")
     created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
     updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
+    deleted_dt = models.DateTimeField(
+        blank=True, null=True, editable=False, db_column='deleted_date', verbose_name="更新日時"
+    )
 
     class Meta:
         managed = False
@@ -59,10 +62,16 @@ class Organization(BaseModel):
         max_length=2, blank=False, null=False, choices=constants.CHOICE_ORG_TYPE,
         verbose_name="組織類別"
     )
+    created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
+    deleted_dt = models.DateTimeField(
+        blank=True, null=True, editable=False, db_column='deleted_date', verbose_name="更新日時"
+    )
 
     class Meta:
         managed = False
         db_table = 'eb_section'
+        ordering = ('name',)
         verbose_name = "組織"
         verbose_name_plural = "組織一覧"
 

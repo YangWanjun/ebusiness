@@ -44,3 +44,10 @@ class SearchMemberView(BaseApiView):
             'count': len(members),
             'results': members
         }
+
+
+class OrganizationViewSet(BaseModelViewSet):
+    queryset = models.Organization.objects.all()
+    serializer_class = serializers.OrganizationSerializer
+    pagination_class = None
+    filter_fields = ('is_on_sales',)

@@ -32,3 +32,9 @@ class MemberSerializer(BaseModelSerializer):
 
     get_full_name.sort_field = 'last_name'
     get_address.sort_field = 'address1'
+
+
+class OrganizationSerializer(BaseModelSerializer):
+    class Meta:
+        model = models.Organization
+        fields = '__all__'

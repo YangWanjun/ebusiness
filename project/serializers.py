@@ -25,6 +25,7 @@ class ProjectSerializer(BaseModelSerializer):
     client__name = serializers.CharField(source='client.name', read_only=True, label='関連会社')
     manager__name = serializers.CharField(source='manager.name', read_only=True, label='案件責任者')
     contact__name = serializers.CharField(source='contact.name', read_only=True, label='案件連絡者')
+    organization__name = serializers.CharField(source='organization.name', read_only=True, label='所属部署')
 
     class Meta:
         model = models.Project

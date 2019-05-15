@@ -5,9 +5,9 @@ from functools import reduce
 
 from django.db.models import Q
 
-from . import models, serializers
+from . import models, serializers, biz
 from utils import constants
-from utils.rest_base import BaseModelViewSet, BaseModelSchemaView
+from utils.rest_base import BaseModelViewSet, BaseModelSchemaView, BaseApiView
 
 
 # Create your views here.
@@ -108,3 +108,14 @@ class ProjectMemberViewSet(BaseModelViewSet):
             return self.queryset.none()
         else:
             return self.queryset.filter(project__pk=project_id)
+
+
+class ProjectAttendanceList(BaseApiView):
+
+    def get_context_data(self, **kwargs):
+        project_id = kwargs.get('pk')
+        attendance_list = biz.get_project_attendance_list(project_id)
+        return {
+            'count': len(attendance_list),
+            'results': attendance_list
+        }

@@ -15,4 +15,6 @@ mysql -h 192.168.99.100 -u root -proot --default-character-set=utf8 eb_sales < 1
 mysql -h 192.168.99.100 -u root -proot --default-character-set=utf8 eb_sales < 201.sp_turnover_monthly_chart.sql
 mysql -h 192.168.99.100 -u root -proot --default-character-set=utf8 eb_sales < 202.sp_turnover_monthly_by_division_chart.sql
 mysql -h 192.168.99.100 -u root -proot --default-character-set=utf8 eb_sales < 240.sp_project_member_cost.sql
+mysql -h 192.168.99.100 -u root -proot --default-character-set=utf8 eb_sales < 241.sp_project_attendance_list.sql
+mysql -h 192.168.99.100 -u root -proot --default-character-set=utf8 eb_sales < 242.sp_project_attendance.sql
 mysql -h 192.168.99.100 -u root -proot --default-character-set=utf8 eb_sales < 301.sp_search_member.sql

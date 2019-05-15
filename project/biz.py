@@ -19,3 +19,17 @@ def get_project_attendance_list(project_id):
             month=row['month'],
         )
     return data
+
+
+def get_project_attendance(project_id, year, month):
+    """案件の指定年月の出勤明細
+
+    :param project_id:
+    :param year:
+    :param month:
+    :return:
+    """
+    with connection.cursor() as cursor:
+        cursor.callproc('sp_project_attendance', (project_id, year, month))
+        data = common.dictfetchall(cursor)
+    return data

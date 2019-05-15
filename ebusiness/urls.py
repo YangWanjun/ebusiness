@@ -49,6 +49,8 @@ urlpatterns = [
     url(r'^api/me/$', member_api.MeApiView.as_view()),
     url(r'^api/member/search$', member_api.SearchMemberView.as_view()),
     url(r'^api/project/(?P<pk>\d+)/attendance$', project_api.ProjectAttendanceList.as_view()),
+    url(r'^api/project/(?P<pk>\d+)/attendance/(?P<year>\d{4})/(?P<month>\d{2})$',
+        project_api.ProjectAttendanceView.as_view()),
     url(r'^api/turnover/monthly/chart$', turnover_api.TurnoverMonthlyChartView.as_view()),
     url(r'^api/turnover/yearly/chart$', turnover_api.TurnoverYearlyChartView.as_view()),
     url(r'^api/turnover/division/monthly/chart$', turnover_api.TurnoverMonthlyByDivisionChartView.as_view()),

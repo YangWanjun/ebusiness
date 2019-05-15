@@ -119,3 +119,16 @@ class ProjectAttendanceList(BaseApiView):
             'count': len(attendance_list),
             'results': attendance_list
         }
+
+
+class ProjectAttendanceView(BaseApiView):
+
+    def get_context_data(self, **kwargs):
+        project_id = kwargs.get('pk')
+        year = kwargs.get('year')
+        month = kwargs.get('month')
+        attendance_list = biz.get_project_attendance(project_id, year, month)
+        return {
+            'count': len(attendance_list),
+            'results': attendance_list
+        }

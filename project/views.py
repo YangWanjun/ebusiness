@@ -132,3 +132,8 @@ class ProjectAttendanceView(BaseApiView):
             'count': len(attendance_list),
             'results': attendance_list
         }
+
+
+class MemberAttendanceViewSet(BaseModelViewSet):
+    queryset = models.MemberAttendance.objects.all()
+    serializer_class = serializers.MemberAttendanceSerializer

@@ -63,3 +63,10 @@ class ProjectMemberSerializer(BaseModelSerializer):
         return obj and obj.end_date is None or obj.end_date >= timezone.now().date()
 
     get_is_working.field_type = 'boolean'
+
+
+class MemberAttendanceSerializer(BaseModelSerializer):
+
+    class Meta:
+        model = models.MemberAttendance
+        fields = '__all__'

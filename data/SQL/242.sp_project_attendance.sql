@@ -14,12 +14,12 @@ select dates.year
      , dates.month
      , concat(dates.year, dates.month) as ym
      , ma.id
-     , pm.id as project_member_id
+     , ma.project_member_id as project_member
      , concat(m.first_name, ' ', m.last_name) as member_name
      , ma.total_hours
      , ma.total_hours_bp
      , ma.extra_hours
-     , ma.price as total_price
+     , ma.price
      , ma.comment
      , pm.price as base_price
      , pm.min_hours

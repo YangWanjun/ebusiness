@@ -193,3 +193,56 @@ class VProject(BaseView):
         default_permissions = ()
         verbose_name = "案件"
         verbose_name_plural = '案件一覧1'
+
+
+class MemberAttendance(BaseModel):
+    project_member = models.ForeignKey(ProjectMember, on_delete=models.PROTECT, verbose_name="メンバー")
+    year = models.CharField(max_length=4, verbose_name="対象年")
+    month = models.CharField(max_length=2, verbose_name="対象月")
+    rate = models.DecimalField(max_digits=3, decimal_places=2, default=1, verbose_name="率")
+    salary = models.IntegerField(default=0, editable=False, verbose_name="給料")
+    cost = models.IntegerField(default=0, editable=False, verbose_name="コスト", help_text="交通費、残業、保険など含む")
+    basic_price = models.IntegerField(default=0, editable=False, verbose_name="単価")
+    total_hours = models.DecimalField(max_digits=5, decimal_places=2, verbose_name="合計時間")
+    total_hours_bp = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, verbose_name="ＢＰ作業時間")
+    extra_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name="残業時間")
+    total_days = models.IntegerField(blank=True, null=True, editable=False, verbose_name="勤務日数")
+    night_days = models.IntegerField(blank=True, null=True, editable=False, verbose_name="深夜日数")
+    advances_paid = models.IntegerField(blank=True, null=True, editable=False, verbose_name="立替金")
+    advances_paid_client = models.IntegerField(blank=True, null=True, editable=False, verbose_name="客先立替金")
+    traffic_cost = models.IntegerField(
+        blank=True, null=True, editable=False, verbose_name="勤務交通費",
+        help_text="今月に勤務交通費がない場合、先月のを使用する。"
+    )
+    allowance = models.IntegerField(
+        blank=True, null=True, editable=False, verbose_name="手当",
+        help_text="今月に手当がない場合、先月のを使用する。"
+    )
+    expenses = models.IntegerField(blank=True, null=True, editable=False, verbose_name="経費")
+    min_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, editable=False, verbose_name="基準時間")
+    max_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, editable=False, verbose_name="最大時間")
+    plus_per_hour = models.IntegerField(default=0, editable=False, verbose_name="増（円）")
+    minus_per_hour = models.IntegerField(default=0, editable=False, verbose_name="減（円）")
+    price = models.IntegerField(default=0, verbose_name="価格")
+    expect_price = models.IntegerField(blank=True, null=True, verbose_name="請求金額")
+    comment = models.CharField(blank=True, null=True, max_length=50, verbose_name="備考")
+    # 経費（原価ではない、営業コストとする）
+    expenses_conference = models.IntegerField(default=0, verbose_name="会議費")
+    expenses_entertainment = models.IntegerField(default=0, verbose_name="交際費")
+    expenses_travel = models.IntegerField(default=0, verbose_name="旅費交通費")
+    expenses_communication = models.IntegerField(default=0, verbose_name="通信費")
+    expenses_tax_dues = models.IntegerField(default=0, verbose_name="租税公課")
+    expenses_expendables = models.IntegerField(default=0, verbose_name="消耗品")
+    created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
+    deleted_dt = models.DateTimeField(
+        blank=True, null=True, editable=False, db_column='deleted_date', verbose_name="更新日時"
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'eb_memberattendance'
+        ordering = ('project_member', 'year', 'month')
+        unique_together = ('project_member', 'year', 'month')
+        verbose_name = "勤務時間"
+        verbose_name_plural = "勤務時間一覧"

@@ -14,7 +14,7 @@ select dates.year
      , dates.month
      , concat(dates.year, dates.month) as ym
      , ma.id
-     , ma.project_member_id as project_member
+     , pm.id as project_member
      , concat(m.first_name, ' ', m.last_name) as member_name
      , ma.total_hours
      , ma.total_hours_bp

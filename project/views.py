@@ -137,3 +137,14 @@ class ProjectAttendanceView(BaseApiView):
 class MemberAttendanceViewSet(BaseModelViewSet):
     queryset = models.MemberAttendance.objects.all()
     serializer_class = serializers.MemberAttendanceSerializer
+
+
+class ProjectOrderListView(BaseApiView):
+
+    def get_context_data(self, **kwargs):
+        project_id = kwargs.get('pk')
+        order_list = biz.get_project_order_list(project_id)
+        return {
+            'count': len(order_list),
+            'results': order_list
+        }

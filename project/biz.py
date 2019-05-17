@@ -33,3 +33,15 @@ def get_project_attendance(project_id, year, month):
         cursor.callproc('sp_project_attendance', (project_id, year, month))
         data = common.dictfetchall(cursor)
     return data
+
+
+def get_project_order_list(project_id):
+    """案件の注文書一覧
+
+    :param project_id: 案件ＩＤ
+    :return:
+    """
+    with connection.cursor() as cursor:
+        cursor.callproc('sp_project_order_list', (project_id,))
+        data = common.dictfetchall(cursor)
+    return data

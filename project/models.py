@@ -1,6 +1,6 @@
 from django.db import models
 
-from master.models import ProjectStage
+from master.models import ProjectStage, BankAccount
 from member.models import Member, Organization
 from utils import constants
 from utils.models import AbstractCompany, BaseModel, BaseView
@@ -246,3 +246,37 @@ class MemberAttendance(BaseModel):
         unique_together = ('project_member', 'year', 'month')
         verbose_name = "勤務時間"
         verbose_name_plural = "勤務時間一覧"
+
+
+class ClientOrder(BaseModel):
+    projects = models.ManyToManyField(Project, verbose_name="案件")
+    name = models.CharField(max_length=50, verbose_name="注文書名称")
+    start_date = models.DateField(verbose_name="開始日")
+    end_date = models.DateField(verbose_name="終了日")
+    order_no = models.CharField(max_length=20, verbose_name="注文番号")
+    order_date = models.DateField(blank=False, null=True, verbose_name="注文日")
+    contract_type = models.CharField(
+        max_length=2, blank=False, null=True,
+        choices=constants.CHOICE_CLIENT_CONTRACT_TYPE, verbose_name="契約形態"
+    )
+    bank_account = models.ForeignKey(
+        BankAccount, blank=False, null=True, db_column='bank_info_id', on_delete=models.PROTECT, verbose_name="振込先口座"
+    )
+    # order_file = models.FileField(blank=True, null=True, upload_to=get_client_order_path, verbose_name="注文書")
+    # member_comma_list = models.CharField(max_length=255, blank=True, null=True, editable=False,
+    #                                      verbose_name="メンバー主キーのリスト",
+    #                                      validators=[validate_comma_separated_integer_list])
+    created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
+    deleted_dt = models.DateTimeField(
+        blank=True, null=True, editable=False, db_column='deleted_date', verbose_name="更新日時"
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'eb_clientorder'
+        verbose_name = "案件注文書"
+        verbose_name_plural = "案件注文書一覧"
+
+    def __str__(self):
+        return self.name

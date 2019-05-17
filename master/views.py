@@ -7,3 +7,8 @@ class ProjectStageViewSet(BaseModelViewSet):
     queryset = models.ProjectStage.objects.all()
     serializer_class = serializers.ProjectStageSerializer
     list_display = ('name',)
+
+
+class BankAccountViewSet(BaseModelViewSet):
+    queryset = models.BankAccount.objects.all()
+    serializer_class = serializers.BankAccountSerializer

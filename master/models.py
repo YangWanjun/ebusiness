@@ -21,10 +21,15 @@ class Bank(BaseModel):
         max_length=30, blank=True, null=True, verbose_name="金融機関カナ",
         help_text="半角カナ文字及び英数字等、左詰め残りスペースとする。"
     )
+    created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
+    deleted_dt = models.DateTimeField(
+        blank=True, null=True, editable=False, db_column='deleted_date', verbose_name="更新日時"
+    )
 
     class Meta:
         managed = False
-        db_table = 'eb_bankinfo'
+        db_table = 'eb_bank'
         ordering = ['code']
         default_permissions = ()
         verbose_name = "金融機関"

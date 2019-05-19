@@ -21,6 +21,12 @@ select co.id
      , pr.id as request_id
      , pr.request_no
      , co.bank_info_id as bank_account
+     , (
+         select concat('[', group_concat(concat('{"value": ', s1.id, ', "display_name":"', s1.name, '"}') separator ','), ']')
+           from eb_project s1
+           join eb_clientorder_projects s2 on s2.project_id = s1.id
+		  where s2.clientorder_id = co.id
+     ) as projects
   from eb_clientorder co
   join eb_clientorder_projects cop on cop.clientorder_id = co.id
   join v_turnover_dates dates on date_format(co.start_date, '%Y%m') <= dates.ym 

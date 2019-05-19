@@ -33,12 +33,13 @@ class ClientMemberViewSet(BaseModelViewSet):
 
     def get_queryset(self):
         search = self.request.GET.get('search')
+        queryset = self.queryset
         if not search:
-            return self.queryset
+            return queryset
         else:
             for bit in search.split():
                 or_queries = [Q(**{orm_lookup: bit}) for orm_lookup in ('name__icontains', 'client__name__icontains')]
-                queryset = self.queryset.filter(reduce(operator.or_, or_queries))
+                queryset = queryset.filter(reduce(operator.or_, or_queries))
             return queryset
 
 
@@ -147,4 +148,25 @@ class ProjectOrderListView(BaseApiView):
         return {
             'count': len(order_list),
             'results': order_list
+        }
+
+
+class ClientOrderViewSet(BaseModelViewSet):
+    queryset = models.ClientOrder.objects.all()
+    serializer_class = serializers.ClientOrderSerializer
+
+
+class SearchProjectView(BaseApiView):
+    model_class = models.Project
+
+    def get_list_display(self):
+        return 'name', 'client__name',
+
+    def get_context_data(self, **kwargs):
+        search = self.request.GET.get('search', None)
+        queryset = biz.search_project(search)
+        projects = serializers.ProjectSerializer(queryset, many=True)
+        return {
+            'count': queryset.count(),
+            'results': projects.data,
         }

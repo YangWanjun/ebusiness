@@ -137,6 +137,7 @@ class BaseModelMetadata(SimpleMetadata):
         models.BooleanField: 'boolean',
         models.NullBooleanField: 'boolean',
         models.CharField: 'string',
+        models.TextField: 'string',
         models.UUIDField: 'string',
         models.URLField: 'url',
         models.EmailField: 'email',

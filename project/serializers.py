@@ -70,3 +70,10 @@ class MemberAttendanceSerializer(BaseModelSerializer):
     class Meta:
         model = models.MemberAttendance
         fields = '__all__'
+
+
+class ClientOrderSerializer(BaseModelSerializer):
+
+    class Meta:
+        model = models.ClientOrder
+        fields = '__all__'

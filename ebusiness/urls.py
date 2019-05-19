@@ -37,6 +37,7 @@ router.register(r'project', project_api.ProjectViewSet)
 router.register(r'vproject', project_api.VProjectViewSet)
 router.register(r'project_member', project_api.ProjectMemberViewSet)
 router.register(r'member-attendance', project_api.MemberAttendanceViewSet)
+router.register(r'client-order', project_api.ClientOrderViewSet)
 router.register(r'turnover/monthly', turnover_api.TurnoverMonthlyViewSet)
 router.register(r'turnover/clients_by_month', turnover_api.TurnoverClientsByMonthViewSet)
 router.register(r'turnover/project', turnover_api.TurnoverProjectViewSet)
@@ -50,6 +51,7 @@ urlpatterns = [
 
     url(r'^api/me/$', member_api.MeApiView.as_view()),
     url(r'^api/member/search$', member_api.SearchMemberView.as_view()),
+    url(r'^api/project/search$', project_api.SearchProjectView.as_view()),
     url(r'^api/project/(?P<pk>\d+)/attendance$', project_api.ProjectAttendanceList.as_view()),
     url(r'^api/project/(?P<pk>\d+)/attendance/(?P<year>\d{4})/(?P<month>\d{2})$',
         project_api.ProjectAttendanceView.as_view()),

@@ -108,17 +108,6 @@ class BaseListModelMixin(ListModelMixin):
 class BaseRetrieveModelMixin(RetrieveModelMixin):
     choice_classes = {}
 
-    def retrieve(self, request, *args, **kwargs):
-        if request.GET.get('schema') == '1':
-            instance = self.get_object()
-            serializer = self.get_serializer(instance)
-            columns = self.metadata_class().determine_metadata(request, self)
-            data = serializer.data
-            data.update(columns)
-            return Response(data)
-        else:
-            return super(BaseRetrieveModelMixin, self).retrieve(request, *args, **kwargs)
-
 
 class BaseDestroyModelMixin(DestroyModelMixin):
 
@@ -199,9 +188,15 @@ class BaseApiView(APIView):
     def get_context_data(self, **kwargs):
         pass
 
+    def get_columns(self):
+        return []
+
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
         if request.GET.get('schema', None) == '1':
-            columns = self.metadata_class().determine_metadata(request, self)
+            if self.get_columns():
+                columns = {'columns': self.get_columns()}
+            else:
+                columns = self.metadata_class().determine_metadata(request, self)
             context.update(columns)
         return Response(context)

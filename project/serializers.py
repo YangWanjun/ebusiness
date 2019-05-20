@@ -3,6 +3,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from . import models
+from utils import constants
 from utils.rest_base import BaseModelSerializer
 
 
@@ -73,7 +74,31 @@ class MemberAttendanceSerializer(BaseModelSerializer):
 
 
 class ClientOrderSerializer(BaseModelSerializer):
+    ym = serializers.SerializerMethodField(read_only=True, label='対象年月')
 
     class Meta:
         model = models.ClientOrder
         fields = '__all__'
+
+    def get_ym(self, obj):
+        return '{:04d}年{:02d}月'.format(obj.start_date.year, obj.start_date.month)
+
+    def validate_start_date(self, value):
+        projects = models.Project.objects.filter(pk__in=self.get_initial()['projects'])
+        for project in projects:
+            qs = project.clientorder_set.filter(start_date__lte=value, end_date__gte=value)
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.count() > 0:
+                raise serializers.ValidationError(constants.ERROR_DATE_CONFLICT.format(date=value))
+        return value
+
+    def validate_end_date(self, value):
+        projects = models.Project.objects.filter(pk__in=self.get_initial()['projects'])
+        for project in projects:
+            qs = project.clientorder_set.filter(start_date__lte=value, end_date__gte=value)
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.count() > 0:
+                raise serializers.ValidationError(constants.ERROR_DATE_CONFLICT.format(date=value))
+        return value

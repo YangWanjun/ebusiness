@@ -175,3 +175,4 @@ CHOICE_MEMBER_TYPE = (
 )
 
 ERROR_DELETE_PROTECTED = '関連付けの{name}が存在して、削除できません。'
+ERROR_DATE_CONFLICT = '日付{date}が重複しています。'

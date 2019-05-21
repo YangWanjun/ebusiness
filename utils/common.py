@@ -1,3 +1,4 @@
+import os
 import re
 import calendar
 import datetime
@@ -153,3 +154,35 @@ def get_business_days(year, month, exclude=None):
             elif exclude is None:
                 business_days.append(this_date)
     return [date for date in business_days if date not in eb_holidays]
+
+
+def get_request_file_path(request_no, request_name, year, month):
+    """生成された請求書のパスを取得する。
+
+    :param request_no: 請求番号
+    :param request_name: 請求名称
+    :param year: 対象年
+    :param month: 対象月
+    :return:
+    """
+    from django.conf import settings
+
+    now = datetime.datetime.now()
+    filename = "EB請求書_{request_no}_{name}_{timestamp}".format(
+        request_no=escape_filename(request_no),
+        name=escape_filename(request_name),
+        timestamp=now.strftime("%Y%m%d_%H%M%S%f")
+    )
+    path = os.path.join(settings.MEDIA_ROOT, "project_request", '{}{}'.format(year, month))
+    if not os.path.exists(path):
+        os.makedirs(path)
+    xlsx_path = "%s.xlsx" % os.path.join(path, filename)
+    pdf_path = "%s.pdf" % os.path.join(path, filename)
+    return xlsx_path, pdf_path
+
+
+def escape_filename(filename):
+    if filename:
+        return re.sub(r'[<>:"/\|?*]', '', filename)
+    else:
+        return filename

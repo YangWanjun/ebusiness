@@ -42,7 +42,7 @@ class Member(AbstractMember):
 
     @property
     def full_name(self):
-        return '{} {}'.format(self.last_name, self.first_name)
+        return '{} {}'.format(self.first_name, self.last_name)
 
     @property
     def address(self):

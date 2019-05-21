@@ -1,0 +1,427 @@
+{% load humanize %}
+<html>
+<head>
+    <title>{{ title }}</title>
+    <style type="text/css">
+* {
+    margin: 0;
+    padding: 0;
+    line-height: 1.5;
+}
+div.container {
+    margin: 0 auto;
+    width: 948px;
+    padding-top: 20px;
+    position: relative;
+}
+div.signature {
+    position: absolute;
+    border: 1px solid gray;
+    width: 269px;
+    height: 86px;
+}
+div.signature div.sub_signature {
+    width: 85px;
+    height: 80px;
+    border: 1px solid gray;
+    float: left;
+    margin: 2px 0px 2px 2px;
+}
+div.container table {
+    width: 100%;
+    padding: 10px 5px;
+    min-height: 20px;
+}
+table.request {
+    font-size: 10pt;
+    font-family: "ＭＳ Ｐゴシック";
+    table-layout: fixed;
+    border-image: initial;
+    margin: -10px auto 20px;
+    padding: 0px;
+}
+table.request tr {
+    height: 20px;
+}
+table.request .title {
+    font-size: 20pt;
+    text-align: center;
+    text-decoration: underline;
+}
+table.request td.title2 {
+    font-size: 14pt;
+    font-weight: bold;
+    text-decoration: underline;
+}
+div.dashboard table th {
+    padding: 4px 10px;
+    width: 120px;
+    text-align: left;
+    font-weight: normal;
+}
+table.request td.bottom {
+    border-bottom: 1px solid #000;
+}
+table.request td.left {
+    border-left: 1px solid #000;
+}
+table.request td.top {
+    border-top: 1px solid #000;
+}
+table.request td.border_right {
+    border-right: 1px solid #000;
+}
+table.request td.align_left {
+    text-align: left;
+    padding-left: 3px;
+}
+table.request td.align_right {
+    text-align: right;
+    padding-right: 3px;
+}
+.center {
+    text-align: center;
+}
+    </style>
+</head>
+<body>
+    <div class="container ">
+        <!-- 署名欄 -->
+        <div class="signature" style="left: 615px; top: 380px;">
+            <div class="sub_signature"></div>
+            <div class="sub_signature"></div>
+            <div class="sub_signature"></div>
+            <div class="clear"></div>
+        </div>
+        {% if data %}
+        <table class="request" cellpadding="0" cellspacing="0" style="width: 948px;">
+            <tr>
+                <td style="width: 0px;"></td>
+                <td style="width: 45px;"></td>
+                <td style="width: 29px;"></td>
+                <td style="width: 29px;"></td>
+                <td style="width: 30px;"></td>
+                <td style="width: 30px;"></td>
+                <td style="width: 30px;"></td>
+                <td style="width: 88px;"></td>
+                <td style="width: 91px;"></td>
+                <td style="width: 45px;"></td>
+                <td style="width: 128px;"></td>
+                <td style="width: 45px;"></td>
+                <td style="width: 45px;"></td>
+                <td style="width: 58px;"></td>
+                <td style="width: 114px;"></td>
+                <td style="width: 105px;"></td>
+            </tr>
+            <tr>
+                <th class="title" colspan="16">　　御　請　求　書　　</th>
+            </tr>
+            <tr></tr>
+            <tr>
+                <td></td>
+                <td colspan="11">〒{{ data.heading.client_post_code }}</td>
+                <td colspan="2">請求番号</td>
+                <td colspan="2">{{ data.project_request.request_no }}</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td colspan="11">{{ data.heading.client_address }}</td>
+                <td colspan="2">発  行 日</td>
+                <td colspan="2">{{ data.heading.publish_date }}</td>
+            </tr>
+            <tr></tr>
+            <tr>
+                <td></td>
+                <td colspan="15">Tel: {{ data.heading.client_tel }}</td>
+            </tr>
+            <tr></tr>
+            <tr>
+                <td></td>
+                <td colspan="15" class="title2">{{ data.heading.client_name }}御中</td>
+            </tr>
+            <tr></tr>
+            <tr>
+                <td></td>
+                <td colspan="11">　下記のとおりご請求申し上げます。</td>
+                <td colspan="4">〒{{ data.heading.company_post_code }}</td>
+            </tr>
+            <tr>
+                <td colspan="12"></td>
+                <td colspan="4">{{ data.heading.company_address }}</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td colspan="3" class="title3">御請求額 ：</td>
+                <td colspan="8" class="title2">￥{{ data.project_request.amount|intcomma }}円</td>
+                <td colspan="4">{{ data.heading.company_name }}</td>
+            </tr>
+            <tr>
+                <td colspan="12"></td>
+                <td colspan="4">代表取締役　　{{ data.heading.company_master }}</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td colspan="3">作業期間</td>
+                <td colspan="8">{{ data.heading.work_period_start|date:'Y年m月d日' }} ～ {{ data.heading.work_period_end|date:'Y年m月d日' }}</td>
+                <td colspan="4">TEL: {{ data.heading.company_tel }}</td>
+            </tr>
+            <tr></tr>
+            {% if data.is_subcontractor %}
+            <tr>
+                <td></td>
+                <td colspan="3">支払期限日</td>
+                <td colspan="12">{{ data.heading.remit_date|date:'Y/m/d' }}</td>
+            </tr>
+            <tr></tr>
+            <tr>
+                <td></td>
+                <td colspan="3">事業部</td>
+                <td colspan="12">{{ data.project_request.section }}</td>
+            </tr>
+            <tr></tr>
+            <tr></tr>
+            <tr></tr>
+            <tr></tr>
+            {% else %}
+            <tr>
+                <td></td>
+                <td colspan="3">注文番号</td>
+                <td colspan="12">{{ data.project_request.client_order.order_no }}</td>
+            </tr>
+            <tr></tr>
+            <tr>
+                <td></td>
+                <td colspan="3">注文日</td>
+                <td colspan="12">{{ data.project_request.client_order.order_date|date:'Y/m/d' }}</td>
+            </tr>
+            <tr></tr>
+            <tr>
+                <td></td>
+                <td colspan="3">契約件名</td>
+                <td colspan="12" style="white-space: nowrap;">{{ data.project_request.client_order.name }}</td>
+            </tr>
+            <tr></tr>
+            <tr>
+                <td></td>
+                <td colspan="3">支払期限日</td>
+                <td colspan="12">{{ data.heading.remit_date|date:'Y/m/d' }}</td>
+            </tr>
+            <tr></tr>
+            {% endif %}
+            <tr>
+                <td></td>
+                <td class="top center bottom left">番号</td>
+                <td class="top center bottom left" colspan="5">項目</td>
+                <td class="top center bottom left">単価</td>
+                <td class="top center bottom left">作業Ｈ</td>
+                <td class="top center bottom left">率</td>
+                <td class="top center bottom left">Min/MaxH</td>
+                <td class="top center bottom left">減</td>
+                <td class="top center bottom left">増</td>
+                <td class="top center bottom left">その他</td>
+                <td class="top center bottom left">金額</td>
+                <td class="top center bottom left border_right">備考</td>
+            </tr>
+            {% for item in data.details %}
+            <tr>
+                <td></td>
+                <td class="left bottom align_right">{{ item.no }}</td>
+                <td class="left bottom align_left" colspan="5">
+                    {% if item.project_member %}
+                        {{ item.project_member }}
+                    {% elif item.project %}
+                        一括
+                    {% endif %}
+                </td>
+                <td class="left bottom align_right">
+                    {% if data.heading.is_hourly_pay %}
+                        <!-- 時給の場合、時給の表示する。 -->
+                        {{ item.hourly_pay|intcomma }}
+                    {% else %}
+                        {{ item.basic_price|intcomma }}
+                    {% endif %}
+                </td>
+                <td class="left bottom align_right">{{ item.total_hours }}</td>
+                <td class="left bottom align_right">{{ item.rate }}</td>
+                <td class="left bottom center">
+                    {% if data.heading.is_hourly_pay %}
+                        <!-- 時給の場合、表示しない。 -->
+                    {% else %}
+                        {% if item %}{{ item.min_hours|stringformat:'d' }}/{{ item.max_hours|stringformat:'d' }}{% endif %}
+                    {% endif %}
+                </td>
+                <td class="left bottom align_right">
+                    {% if data.heading.is_hourly_pay %}
+                        <!-- 時給の場合、０を表示。 -->
+                    {% else %}
+                        {{ item.minus_per_hour|intcomma }}
+                    {% endif %}
+                </td>
+                <td class="left bottom align_right">
+                    {% if data.heading.is_hourly_pay %}
+                        <!-- 時給の場合、０を表示。 -->
+                    {% else %}
+                        {{ item.plus_per_hour|intcomma }}
+                    {% endif %}
+                </td>
+                <td class="left bottom"></td>
+                <td class="left bottom align_right">{{ item.total_price|intcomma }}</td>
+                <td class="left bottom align_left border_right"><div style="overflow: hidden; white-space: nowrap;">{{ item.comment }}</div></td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td></td>
+                <td class="left bottom align_right"></td>
+                <td class="left bottom"></td>
+                <td class="bottom" colspan="4">（小計）</td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom align_right">{{ data.project_request.turnover_amount|intcomma }}</td>
+                <td class="left bottom align_left border_right"></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td class="left bottom align_right"></td>
+                <td class="left bottom"></td>
+                <td class="bottom" colspan="4">（消費税）</td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom align_right">{{ data.project_request.tax_amount|intcomma }}</td>
+                <td class="left bottom align_left border_right"></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td class="left bottom align_right"></td>
+                <td class="left bottom"></td>
+                <td class="bottom" colspan="4">（合計）</td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom align_right">{{ data.project_request.turnover_amount|add:data.project_request.tax_amount|intcomma }}</td>
+                <td class="left bottom align_left border_right"></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td class="left bottom align_right"></td>
+                <td class="left bottom"></td>
+                <td class="bottom" colspan="4">[控除、追加]</td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom align_right"></td>
+                <td class="left bottom align_left border_right"></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td class="left bottom align_left">控除</td>
+                <td class="left bottom" colspan="5"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom align_right"></td>
+                <td class="left bottom align_left border_right"></td>
+            </tr>
+            {% if detail_expenses %}
+                {% for expenses in detail_expenses %}
+                <tr>
+                    <td></td>
+                    <td class="left bottom align_left">{% if forloop.counter == 1 %}追加{% endif %}</td>
+                    <td class="left bottom"></td>
+                    <td class="bottom" style="white-space: nowrap;" colspan="4">{{ expenses.ITEM_EXPENSES_CATEGORY_SUMMARY }}</td>
+                    <td class="left bottom"></td>
+                    <td class="left bottom"></td>
+                    <td class="left bottom"></td>
+                    <td class="left bottom"></td>
+                    <td class="left bottom"></td>
+                    <td class="left bottom"></td>
+                    <td class="left bottom"></td>
+                    <td class="left bottom align_right">{{ expenses.ITEM_EXPENSES_CATEGORY_AMOUNT|intcomma }}</td>
+                    <td class="left bottom align_left border_right"></td>
+                </tr>
+                {% endfor %}
+            {% else %}
+            <tr>
+                <td></td>
+                <td class="left bottom align_left">追加</td>
+                <td class="left bottom"></td>
+                <td class="bottom" colspan="4"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom align_right"></td>
+                <td class="left bottom align_left border_right"></td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td></td>
+                <td class="left bottom align_right"></td>
+                <td class="left bottom"></td>
+                <td class="bottom" colspan="4">（総計）</td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom"></td>
+                <td class="left bottom align_right">{{ data.project_request.amount|intcomma }}</td>
+                <td class="left bottom align_left border_right"></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td class="left border_right align_left" colspan="15">お振込銀行口座</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td class="left"></td>
+                <td class="border_right" colspan="14">{{ data.heading.bank_name }}</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td class="left"></td>
+                <td class="border_right" colspan="14">{{ data.heading.branch_name }}（{{ data.heading.branch_no }}）</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td class="left"></td>
+                <td class="border_right" colspan="14">{{ data.heading.get_account_type_display }}　{{ data.heading.account_number }}</td>
+            </tr>
+            <tr>
+                <td class=""></td>
+                <td class="left bottom"></td>
+                <td class="bottom border_right" colspan="14">名義　　　　{{ data.heading.account_holder }}</td>
+            </tr>
+        </table>
+        {% else %}
+        <div class="center red" style="margin-bottom: 20px;font-size: 20px;font-weight: bold;">
+            履歴情報がありません！</div>
+        {% endif %}
+    </div>
+</body>
+</html>

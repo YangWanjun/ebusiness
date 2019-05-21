@@ -6,9 +6,12 @@ from utils.models import BaseModel, AbstractCompany
 
 
 class Company(AbstractCompany):
+    kana = models.CharField(max_length=30, blank=True, null=True, db_column='japanese_spell', verbose_name="フリカナ")
 
     class Meta:
-        db_table = 'mst_company'
+        managed = False
+        db_table = 'eb_company'
+        default_permissions = ()
         verbose_name = verbose_name_plural = "自社情報"
 
 
@@ -107,3 +110,28 @@ class ProjectStage(BaseModel):
 
     def __str__(self):
         return self.name
+
+
+class ExpensesCategory(BaseModel):
+    name = models.CharField(max_length=50, unique=True, verbose_name="名称")
+
+    class Meta:
+        managed = False
+        verbose_name = "精算分類"
+        verbose_name_plural = "精算分類一覧"
+        db_table = 'mst_expenses_category'
+
+    def __str__(self):
+        return self.name
+
+
+class Holiday(BaseModel):
+    date = models.DateField(unique=True, verbose_name="日付")
+    comment = models.CharField(max_length=100, verbose_name="説明")
+
+    class Meta:
+        managed = False
+        db_table = 'mst_holiday'
+        ordering = ('date',)
+        verbose_name = "休日"
+        verbose_name_plural = "休日一覧"

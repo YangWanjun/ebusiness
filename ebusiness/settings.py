@@ -26,8 +26,9 @@ SECRET_KEY = 'vh(=pym9m$%5ehc(2voz&i!iq^o%w@6utjprnj@!lu9ps6ap(='
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+NUMBER_GROUPING = 3
 
-ALLOWED_HOSTS = ['192.168.99.100', '127.0.0.1']
+ALLOWED_HOSTS = ['192.168.99.100', '127.0.0.1', 'localhost']
 CORS_ORIGIN_WHITELIST = (
     'localhost:3000',
     '127.0.0.1:3000',
@@ -43,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'corsheaders',
     'rest_framework',
     'django_filters',
@@ -69,7 +71,9 @@ ROOT_URLCONF = 'ebusiness.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -196,3 +200,31 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+LOG_ROOT = os.path.join(BASE_DIR, "logs")
+if not os.path.exists(LOG_ROOT):
+    os.mkdir(LOG_ROOT)
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': "[%(asctime)s] %(levelname)s [PROCESS:%(process)d] [%(module)s:%(lineno)s] %(message)s",
+            'datefmt': "%Y/%m/%d %H:%M:%S"
+        },
+    },
+    'handlers': {
+        'system': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'standard',
+            'filename': os.path.join(LOG_ROOT, "system.log"),
+        },
+    },
+    'loggers': {
+        'system': {
+            'handlers': ['system'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    }
+}

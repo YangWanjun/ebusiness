@@ -20,7 +20,7 @@ class BaseModel(models.Model):
     created_dt = models.DateTimeField(auto_now_add=True, verbose_name="作成日時")
     updated_dt = models.DateTimeField(auto_now=True, verbose_name="更新日時")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name="削除フラグ")
-    deleted_dt = models.DateTimeField(blank=True, null=True, editable=False, verbose_name="削除年月日")
+    deleted_dt = models.DateTimeField(blank=True, null=True, editable=False, verbose_name="削除日時")
 
     objects = DefaultManager(is_deleted=False)
 

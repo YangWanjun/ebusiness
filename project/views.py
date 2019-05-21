@@ -3,13 +3,17 @@ import django_filters
 
 from functools import reduce
 
+from django.db import transaction
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
 
 from rest_framework import status as rest_status
 from rest_framework.response import Response
 
 from . import models, serializers, biz
-from utils import constants
+from master.models import Company, BankAccount
+from utils import constants, file_gen
 from utils.rest_base import BaseModelViewSet, BaseModelSchemaView, BaseApiView
 
 
@@ -163,13 +167,7 @@ class ClientOrderViewSet(BaseModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         data = serializer.data
-        project_list = []
-        for project in models.Project.objects.filter(pk__in=data['projects']):
-            project_list.append({
-                'value': project.pk,
-                'display_name': project.name,
-            })
-        data['projects'] = project_list
+        data['projects'] = biz.get_project_choice(data['projects'])
         headers = self.get_success_headers(data)
         return Response(data, status=rest_status.HTTP_201_CREATED, headers=headers)
 
@@ -186,13 +184,7 @@ class ClientOrderViewSet(BaseModelViewSet):
             instance._prefetched_objects_cache = {}
 
         data = serializer.data
-        project_list = []
-        for project in models.Project.objects.filter(pk__in=data['projects']):
-            project_list.append({
-                'value': project.pk,
-                'display_name': project.name,
-            })
-        data['projects'] = project_list
+        data['projects'] = biz.get_project_choice(data['projects'])
         return Response(data)
 
 
@@ -228,3 +220,58 @@ class SearchProjectView(BaseApiView):
             'count': queryset.count(),
             'results': projects.data,
         }
+
+
+class ProjectRequestDetailApiView(BaseApiView):
+    template_name = 'project/project_request.html'
+
+    def get_context_data(self, **kwargs):
+        request_no = kwargs.get('request_no')
+        project_request = models.ProjectRequest.objects.get(request_no=request_no)
+        heading = project_request.projectrequestheading
+        details = list(project_request.projectrequestdetail_set.all())
+        if len(details) < 20:
+            details.extend([None] * (20 - len(details)))
+        data = {
+            'project_request': project_request,
+            'heading': heading,
+            'details': details,
+        }
+        html = render_to_string(self.template_name, {'data': data})
+        return {'html': html}
+
+
+class ProjectRequestCreateApiView(BaseApiView):
+
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        company = Company.objects.first()
+        project = get_object_or_404(models.Project, pk=kwargs.get('project_id'))
+        client_order = get_object_or_404(models.ClientOrder, pk=kwargs.get('order_id'))
+        year = kwargs.get('year')
+        month = kwargs.get('month')
+        initial = {
+            'bank_account': get_object_or_404(BankAccount, pk=request.data.get('bank_account_id')),
+            'contract_name': request.data.get('contract_name'),
+            'order_no': request.data.get('order_no'),
+        }
+        project_request = project.get_project_request(year, month, client_order)
+        request_data = biz.generate_request_data(company, project, client_order, year, month, initial)
+        file_gen.generate_request(project, request_data, project_request.request_no, year, month)
+        heading = request_data.get('heading')
+        project_request.request_name = heading.get('CONTRACT_NAME')
+        project_request.amount = heading['ITEM_AMOUNT_ALL']
+        project_request.turnover_amount = heading.get('ITEM_AMOUNT_ATTENDANCE')
+        project_request.tax_amount = heading.get('ITEM_AMOUNT_ATTENDANCE_TAX')
+        project_request.expenses_amount = heading.get('ITEM_AMOUNT_EXPENSES')
+        project_request.created_user = request.user
+        project_request.updated_user = request.user
+        project_request.save(other_data=request_data)
+        data = serializers.ClientOrderSerializer(client_order).data
+        data['projects'] = biz.get_project_choice(data['projects'])
+        data['request_no'] = project_request.request_no
+        data['request_detail_url'] = '/project/{pk}/request/{request_no}'.format(
+            pk=project.pk,
+            request_no=project_request.request_no,
+        )
+        return Response(data)

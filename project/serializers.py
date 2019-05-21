@@ -102,3 +102,24 @@ class ClientOrderSerializer(BaseModelSerializer):
             if qs.count() > 0:
                 raise serializers.ValidationError(constants.ERROR_DATE_CONFLICT.format(date=value))
         return value
+
+
+class ProjectRequestSerializer(BaseModelSerializer):
+
+    class Meta:
+        model = models.ProjectRequest
+        fields = '__all__'
+
+
+class ProjectRequestHeadingSerializer(BaseModelSerializer):
+
+    class Meta:
+        model = models.ProjectRequestHeading
+        fields = '__all__'
+
+
+class ProjectRequestDetailSerializer(BaseModelSerializer):
+
+    class Meta:
+        model = models.ProjectRequestDetail
+        fields = '__all__'

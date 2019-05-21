@@ -200,3 +200,6 @@ class BaseApiView(APIView):
                 columns = self.metadata_class().determine_metadata(request, self)
             context.update(columns)
         return Response(context)
+
+    def post(self, request, *args, **kwargs):
+        pass

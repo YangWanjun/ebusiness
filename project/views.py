@@ -284,4 +284,5 @@ class ProjectRequestCreateApiView(BaseApiView):
             pk=project.pk,
             request_no=project_request.request_no,
         )
+        data['uuid'] = project_request.filename
         return Response(data)

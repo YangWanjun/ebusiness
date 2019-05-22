@@ -24,4 +24,5 @@ select p.id
   from eb_project p
   left join eb_client c on c.id = p.id
   left join eb_salesperson s on s.id = p.salesperson_id
+ order by p.name
 ;

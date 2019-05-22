@@ -148,6 +148,7 @@ REST_FRAMEWORK = {
         'utils.filters.CustomFilter'
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'EXCEPTION_HANDLER': 'utils.rest_base.custom_exception_handler',
     'PAGE_SIZE': 15
 }
 

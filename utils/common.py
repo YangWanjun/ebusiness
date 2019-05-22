@@ -7,7 +7,7 @@ import pytz
 import logging
 from urllib.parse import urlparse
 
-from . import jholiday
+from . import jholiday, constants
 
 
 def get_tz_utc():
@@ -156,33 +156,33 @@ def get_business_days(year, month, exclude=None):
     return [date for date in business_days if date not in eb_holidays]
 
 
-def get_request_file_path(request_no, request_name, year, month):
+def get_request_filename(request_no, request_name, ext='.xlsx'):
     """生成された請求書のパスを取得する。
 
     :param request_no: 請求番号
     :param request_name: 請求名称
-    :param year: 対象年
-    :param month: 対象月
+    :param ext: 拡張子
     :return:
     """
-    from django.conf import settings
 
     now = datetime.datetime.now()
     filename = "EB請求書_{request_no}_{name}_{timestamp}".format(
-        request_no=escape_filename(request_no),
-        name=escape_filename(request_name),
+        request_no=request_no,
+        name=request_name,
         timestamp=now.strftime("%Y%m%d_%H%M%S%f")
     )
-    path = os.path.join(settings.MEDIA_ROOT, "project_request", '{}{}'.format(year, month))
-    if not os.path.exists(path):
-        os.makedirs(path)
-    xlsx_path = "%s.xlsx" % os.path.join(path, filename)
-    pdf_path = "%s.pdf" % os.path.join(path, filename)
-    return xlsx_path, pdf_path
+    return filename + ext
 
 
-def escape_filename(filename):
-    if filename:
-        return re.sub(r'[<>:"/\|?*]', '', filename)
-    else:
-        return filename
+# def escape_filename(filename):
+#     if filename:
+#         return re.sub(r'[<>:"/\|?*]', '', filename)
+#     else:
+#         return filename
+
+
+def get_attachment_path(self, filename):
+    name, ext = os.path.splitext(filename)
+    now = datetime.datetime.now()
+    path = os.path.join(now.strftime('%Y'), now.strftime('%m'))
+    return os.path.join(path, self.uuid + ext)

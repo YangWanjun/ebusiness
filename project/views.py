@@ -13,7 +13,7 @@ from rest_framework import status as rest_status
 from rest_framework.response import Response
 
 from . import models, serializers, biz
-from master.models import Company, BankAccount
+from master.models import Company, BankAccount, Attachment
 from utils import constants, file_gen, common
 from utils.rest_base import BaseModelViewSet, BaseModelSchemaView, BaseApiView
 
@@ -257,27 +257,26 @@ class ProjectRequestCreateApiView(BaseApiView):
             'order_no': request.data.get('order_no'),
         }
         project_request = project.get_project_request(year, month, client_order)
-        old_file_name = project_request.filename
         request_data = biz.generate_request_data(company, project, client_order, year, month, initial)
         heading = request_data.get('heading')
-        xlsx_path, pdf_path = common.get_request_file_path(
-            project_request.request_no,
-            heading.get('CONTRACT_NAME'),
-            year,
-            month,
-        )
-        file_gen.generate_request(request_data, project_request.request_no, xlsx_path)
+        byte_file = file_gen.generate_request(request_data, project_request.request_no)
         project_request.request_name = heading.get('CONTRACT_NAME')
         project_request.amount = heading['ITEM_AMOUNT_ALL']
         project_request.turnover_amount = heading.get('ITEM_AMOUNT_ATTENDANCE')
         project_request.tax_amount = heading.get('ITEM_AMOUNT_ATTENDANCE_TAX')
         project_request.expenses_amount = heading.get('ITEM_AMOUNT_EXPENSES')
-        project_request.filename = xlsx_path
         project_request.created_user = request.user
         project_request.updated_user = request.user
         project_request.save(other_data=request_data)
-        if old_file_name and os.path.exists(old_file_name):
-            os.remove(old_file_name)
+        filename = common.get_request_filename(project_request.request_no, heading.get('CONTRACT_NAME'))
+        attachment = Attachment.save_from_bytes(
+            project_request,
+            byte_file,
+            filename,
+            existed_file=project_request.filename
+        )
+        project_request.filename = attachment.uuid
+        project_request.save(update_fields=('filename',))
         data = serializers.ClientOrderSerializer(client_order).data
         data['projects'] = biz.get_project_choice(data['projects'])
         data['request_no'] = project_request.request_no

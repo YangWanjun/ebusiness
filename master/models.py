@@ -1,7 +1,15 @@
-from django.core.validators import RegexValidator
-from django.db import models
+import os
+import uuid
 
-from utils import constants
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.files.base import ContentFile
+from django.core.validators import RegexValidator
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+from django.db import models
+from django.utils import timezone
+
+from utils import constants, common
 from utils.models import BaseModel, AbstractCompany
 
 
@@ -135,3 +143,48 @@ class Holiday(BaseModel):
         ordering = ('date',)
         verbose_name = "休日"
         verbose_name_plural = "休日一覧"
+
+
+def get_attachment_id():
+    return '{time}_{uuid}'.format(
+        time=timezone.now().strftime('%y%m%d%H%M%S'),
+        uuid=uuid.uuid4(),
+    )
+
+
+class Attachment(BaseModel):
+    content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    uuid = models.CharField(max_length=55, unique=True, default=get_attachment_id, verbose_name="ファイルの唯一ＩＤ")
+    name = models.CharField(max_length=100, verbose_name="帳票名称")
+    path = models.FileField(upload_to=common.get_attachment_path)
+
+    class Meta:
+        managed = False
+        db_table = 'mst_attachment'
+        default_permissions = ()
+        verbose_name = "ファイル"
+        verbose_name_plural = "ファイル一覧"
+
+    @classmethod
+    def save_from_bytes(cls, content_object, byte_file, filename, existed_file=None):
+        if existed_file:
+            try:
+                cls.objects.get(uuid=existed_file).delete()
+            except ObjectDoesNotExist:
+                pass
+        byte_file.seek(0)
+        uploaded_file = ContentFile(byte_file.read())
+        uploaded_file.name = filename
+        attachment = cls.objects.create(
+            content_object=content_object,
+            name=filename,
+            path=uploaded_file
+        )
+        return attachment
+
+    def delete(self, using=None, keep_parents=False):
+        if os.path.exists(self.path.path):
+            os.remove(self.path.path)
+        super(Attachment, self).delete(using, keep_parents)

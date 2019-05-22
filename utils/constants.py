@@ -192,3 +192,4 @@ ERROR_DELETE_PROTECTED = '関連付けの{name}が存在して、削除できま
 ERROR_DATE_CONFLICT = '日付{date}が重複しています。'
 ERROR_NOT_IMPLEMENTED = '未実装です。'
 ERROR_NO_ATTENDANCE = '{name}の出勤情報がありません。'
+ERROR_UNKNOWN_ATTACHMENT = '識別できないファイルです。'

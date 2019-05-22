@@ -1,14 +1,16 @@
 import xlsxwriter
+from io import BytesIO
 
 
-def generate_request(data, request_no, out_path):
+def generate_request(data, request_no):
     if 'detail_all' in data and data.get('detail_all'):
         is_lump = True
         is_bp_request = False
     else:
         is_lump = False
         is_bp_request = True
-    book = xlsxwriter.Workbook(out_path)
+    output = BytesIO()
+    book = xlsxwriter.Workbook(output, {'in_memory': True})
     sheet = book.add_worksheet()
 
     # タイトル設定
@@ -258,4 +260,4 @@ def generate_request(data, request_no, out_path):
     for i in range(1, 23):
         sheet.set_row(i, 15.5)
     book.close()
-    return out_path
+    return output

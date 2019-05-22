@@ -27,14 +27,18 @@ select co.id
            join eb_clientorder_projects s2 on s2.project_id = s1.id
 		  where s2.clientorder_id = co.id
      ) as projects
+     , a.uuid
+     , a.name as filename
   from eb_clientorder co
   join eb_clientorder_projects cop on cop.clientorder_id = co.id
   join v_turnover_dates dates on date_format(co.start_date, '%Y%m') <= dates.ym 
 							 and date_format(co.end_date, '%Y%m') >= dates.ym
+  left join django_content_type ct on ct.app_label = 'project' and ct.model = 'projectrequest'
   left join eb_projectrequest pr on pr.project_id = in_project_id
                                 and pr.client_order_id = co.id
                                 and pr.year = dates.year
                                 and pr.month = dates.month
+  left join mst_attachment a on a.content_type_id = ct.id and a.object_id = pr.id
  where co.is_deleted = 0
    and cop.project_id = in_project_id
  order by dates.year desc, dates.month desc

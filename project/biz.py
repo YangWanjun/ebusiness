@@ -69,6 +69,10 @@ def get_project_order_list(project_id):
                 pk=project_id,
                 request_no=row['request_no'],
             )
+        if row['uuid']:
+            row['request_download_url'] = '/master/attachment/download/{uuid}'.format(
+                uuid=row['uuid'],
+            )
     return data
 
 

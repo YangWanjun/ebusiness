@@ -68,3 +68,17 @@ class MemberDetailsApiView(BaseApiView):
     def get_context_data(self, **kwargs):
         data = biz.get_member_details(kwargs.get('member_id'))
         return data
+
+
+class OrganizationPeriodViewSet(BaseModelViewSet):
+    queryset = models.OrganizationPeriod.objects.all()
+    serializer_class = serializers.OrganizationPeriodSerializer
+    filter_fields = ('member',)
+
+    def get_queryset(self):
+        queryset = super(OrganizationPeriodViewSet, self).get_queryset()
+        member_id = self.request.GET.get('member')
+        if member_id:
+            return queryset.filter(member=member_id)
+        else:
+            return queryset

@@ -62,10 +62,12 @@ def get_member_details(member_id):
     member = models.Member.objects.get(pk=member_id)
     projects = get_project_history(member_id)
     organizations = get_organization_history(member_id)
+    salesperson = get_salesperson_history(member_id)
     return {
         'member': serializers.MemberSerializer(member).data,
         'projects': projects,
         'organizations': organizations,
+        'salesperson': salesperson,
     }
 
 
@@ -103,5 +105,17 @@ def get_organization_history(member_id):
     """
     with connection.cursor() as cursor:
         cursor.callproc('sp_organization_dashboard', (member_id,))
+        results = common.dictfetchall(cursor)
+    return results
+
+
+def get_salesperson_history(member_id):
+    """社員の営業担当履歴
+
+    :param member_id:
+    :return:
+    """
+    with connection.cursor() as cursor:
+        cursor.callproc('sp_salesperson_history', (member_id,))
         results = common.dictfetchall(cursor)
     return results

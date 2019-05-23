@@ -63,6 +63,7 @@ class Organization(BaseModel):
     class Meta:
         managed = False
         db_table = 'eb_section'
+        default_permissions = ()
         ordering = ('name',)
         verbose_name = "組織"
         verbose_name_plural = "組織一覧"
@@ -71,14 +72,33 @@ class Organization(BaseModel):
         return self.name
 
 
-class Membership(BaseModel):
+class OrganizationPeriod(BaseModel):
     member = models.ForeignKey(Member, on_delete=PROTECT, verbose_name="社員")
-    organization = models.ForeignKey(Organization, on_delete=PROTECT, verbose_name="組織")
+    division = models.ForeignKey(
+        Organization, on_delete=models.PROTECT, blank=True, null=True,
+        related_name='divisionperiod_set',
+        verbose_name="事業部"
+    )
+    department = models.ForeignKey(
+        Organization, blank=True, null=True, db_column='section_id', on_delete=models.PROTECT, verbose_name="部署"
+    )
+    section = models.ForeignKey(
+        Organization, blank=True, null=True, db_column='subsection_id', on_delete=models.PROTECT,
+        related_name='sectionperiod_set',
+        verbose_name="課"
+    )
     start_date = models.DateField(verbose_name="開始日")
     end_date = models.DateField(default=datetime.date.max, verbose_name="終了日")
+    created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
+    deleted_dt = models.DateTimeField(
+        blank=True, null=True, editable=False, db_column='deleted_date', verbose_name="更新日時"
+    )
 
     class Meta:
-        db_table = 'eb_membership'
+        managed = False
+        db_table = 'eb_membersectionperiod'
+        default_permissions = ()
         verbose_name = "所属"
         verbose_name_plural = "所属一覧"
 

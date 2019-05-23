@@ -47,3 +47,13 @@ class OrganizationSerializer(BaseModelSerializer):
     class Meta:
         model = models.Organization
         fields = '__all__'
+
+
+class OrganizationPeriodSerializer(BaseModelSerializer):
+    division_name = serializers.CharField(source='division.name', read_only=True, label='事業部名称')
+    department_name = serializers.CharField(source='department.name', read_only=True, label='部署名称')
+    section_name = serializers.CharField(source='section.name', read_only=True, label='課名称')
+
+    class Meta:
+        model = models.OrganizationPeriod
+        fields = '__all__'

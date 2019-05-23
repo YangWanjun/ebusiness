@@ -40,14 +40,6 @@ class Member(AbstractMember):
     def __str__(self):
         return self.full_name
 
-    @property
-    def full_name(self):
-        return '{} {}'.format(self.first_name, self.last_name)
-
-    @property
-    def address(self):
-        return '{}{}'.format(self.address1 or '', self.address2 or '')
-
 
 class Organization(BaseModel):
     name = models.CharField(max_length=30, blank=False, null=False, verbose_name="部署名")

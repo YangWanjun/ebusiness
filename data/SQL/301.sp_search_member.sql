@@ -14,7 +14,7 @@ select m.id
      , t.join_date
      , t.end_date
      , sales.id as salesperson_id
-	 , concat(sales.first_name, ' ', sales.last_name) as salesperson_name
+     , concat(sales.first_name, ' ', sales.last_name) as salesperson_name
      , division.id as division_id
      , division.name as division_name
      , department.id as department_id
@@ -26,12 +26,12 @@ select m.id
   from (
         select m1.id as id
              , concat(m1.first_name, ' ', m1.last_name) as name
-		  from eb_member m1
-		 where m1.is_deleted = 0
-		   and (m1.first_name collate utf8_unicode_ci like concat('%', in_keyword, '%')
-			or m1.last_name collate utf8_unicode_ci like concat('%', in_keyword, '%')
-			or concat(m1.first_name, ' ', m1.last_name) collate utf8_unicode_ci like concat('%', in_keyword, '%')
-		   )
+          from eb_member m1
+         where m1.is_deleted = 0
+           and (m1.first_name collate utf8_unicode_ci like concat('%', in_keyword, '%')
+            or m1.last_name collate utf8_unicode_ci like concat('%', in_keyword, '%')
+            or concat(m1.first_name, ' ', m1.last_name) collate utf8_unicode_ci like concat('%', in_keyword, '%')
+           )
   ) m
   left join (
     select t1.member_id
@@ -60,7 +60,7 @@ select m.id
                 or concat(m.first_name, ' ', m.last_name) collate utf8_unicode_ci like concat('%', in_keyword, '%')
                )
             UNION ALL
-			-- ＢＰ契約
+            -- ＢＰ契約
             select distinct c.id
                  , concat(m.first_name, ' ', m.last_name) as name
                  , m.id as member_id

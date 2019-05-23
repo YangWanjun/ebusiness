@@ -69,6 +69,10 @@ def get_full_postcode(postcode):
         return postcode
 
 
+def add_days(source_date, days=1):
+    return source_date + datetime.timedelta(days=days)
+
+
 def add_months(source_date, months=1):
     month = source_date.month - 1 + months
     year = int(source_date.year + month / 12)

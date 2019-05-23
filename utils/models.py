@@ -120,5 +120,13 @@ class AbstractMember(BaseModel):
         abstract = True
 
     @property
+    def full_name(self):
+        return '{} {}'.format(self.first_name, self.last_name)
+
+    @property
+    def full_kana(self):
+        return '{} {}'.format(self.first_name_ja, self.last_name_ja)
+
+    @property
     def address(self):
         return '{}{}'.format(self.address1 or '', self.address2 or '')

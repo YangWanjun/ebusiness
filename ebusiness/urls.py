@@ -50,6 +50,8 @@ urlpatterns = [
     url(r'^api/', include(router.urls)),
 
     url(r'^api/me/$', member_api.MeApiView.as_view()),
+    url(r'^api/members/$', member_api.MemberListApiView.as_view()),
+    url(r'^api/member/(?P<member_id>\d+)/details/$', member_api.MemberDetailsApiView.as_view()),
     url(r'^api/member/search$', member_api.SearchMemberView.as_view()),
     url(r'^api/project/search$', project_api.SearchProjectView.as_view()),
     url(r'^api/project/(?P<pk>\d+)/attendance$', project_api.ProjectAttendanceList.as_view()),

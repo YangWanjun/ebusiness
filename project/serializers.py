@@ -52,6 +52,7 @@ class ProjectMemberSerializer(BaseModelSerializer):
     member_name = serializers.SerializerMethodField(read_only=True, label='名前')
     project__name = serializers.CharField(source='project.name', read_only=True, label='案件名称')
     is_working = serializers.SerializerMethodField(read_only=True, label='稼働中')
+    url_member_detail = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = models.ProjectMember
@@ -62,6 +63,9 @@ class ProjectMemberSerializer(BaseModelSerializer):
 
     def get_is_working(self, obj):
         return obj and obj.end_date is None or obj.end_date >= timezone.now().date()
+
+    def get_url_member_detail(self, obj):
+        return '/member/{pk}/details/'.format(pk=obj.member_id)
 
     get_is_working.field_type = 'boolean'
 

@@ -51,3 +51,20 @@ class OrganizationViewSet(BaseModelViewSet):
     serializer_class = serializers.OrganizationSerializer
     pagination_class = None
     filter_fields = ('is_on_sales',)
+
+
+class MemberListApiView(BaseApiView):
+
+    def get_context_data(self, **kwargs):
+        members = biz.get_member_list()
+        return {
+            'count': len(members),
+            'results': members
+        }
+
+
+class MemberDetailsApiView(BaseApiView):
+
+    def get_context_data(self, **kwargs):
+        data = biz.get_member_details(kwargs.get('member_id'))
+        return data

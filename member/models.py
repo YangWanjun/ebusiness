@@ -1,7 +1,6 @@
 import datetime
 
 from django.db import models
-from django.db.models import PROTECT
 
 from utils import constants
 from utils.models import BaseModel, AbstractMember, BaseView
@@ -73,7 +72,7 @@ class Organization(BaseModel):
 
 
 class OrganizationPeriod(BaseModel):
-    member = models.ForeignKey(Member, on_delete=PROTECT, verbose_name="社員")
+    member = models.ForeignKey(Member, on_delete=models.PROTECT, verbose_name="社員")
     division = models.ForeignKey(
         Organization, on_delete=models.PROTECT, blank=True, null=True,
         related_name='divisionperiod_set',

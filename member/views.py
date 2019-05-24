@@ -82,3 +82,16 @@ class OrganizationPeriodViewSet(BaseModelViewSet):
             return queryset.filter(member=member_id)
         else:
             return queryset
+
+
+class DivisionListApiView(BaseApiView):
+
+    def get_context_data(self, **kwargs):
+        qs_org = models.Organization.objects.filter(
+            org_type='01',
+            is_on_sales=True,
+        )
+        return {
+            'count': qs_org.count(),
+            'results': serializers.OrganizationSerializer(qs_org, many=True).data,
+        }

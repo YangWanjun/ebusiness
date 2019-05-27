@@ -1,5 +1,6 @@
 import datetime
 
+from django.contrib.auth.models import User
 from django.db import models
 
 from utils import constants
@@ -125,3 +126,44 @@ class SearchMember(BaseView):
         default_permissions = ()
         verbose_name = "メンバー"
         verbose_name_plural = "メンバー一覧"
+
+
+class Salesperson(AbstractMember):
+    user = models.OneToOneField(User, blank=True, null=True, on_delete=models.PROTECT)
+    section = models.ForeignKey(Organization, blank=False, null=True, on_delete=models.PROTECT, verbose_name="部署")
+    member_type = models.CharField(
+        max_length=1, default=5, choices=constants.CHOICE_SALESPERSON_TYPE, verbose_name="社員区分"
+    )
+    created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
+    deleted_dt = models.DateTimeField(
+        blank=True, null=True, editable=False, db_column='deleted_date', verbose_name="更新日時"
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'eb_salesperson'
+        default_permissions = ()
+        ordering = ('first_name', 'last_name')
+        verbose_name = "営業員"
+        verbose_name_plural = "営業員一覧"
+
+
+class SalespersonPeriod(BaseModel):
+    member = models.ForeignKey(Member, on_delete=models.PROTECT, verbose_name="社員")
+    salesperson = models.ForeignKey(Salesperson, on_delete=models.PROTECT, verbose_name="営業員")
+    start_date = models.DateField(verbose_name="開始日")
+    end_date = models.DateField(blank=True, null=True, verbose_name="終了日")
+    created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
+    deleted_dt = models.DateTimeField(
+        blank=True, null=True, editable=False, db_column='deleted_date', verbose_name="更新日時"
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'eb_membersalespersonperiod'
+        default_permissions = ()
+        ordering = ('start_date',)
+        verbose_name = "営業員期間"
+        verbose_name_plural = "営業員期間一覧"

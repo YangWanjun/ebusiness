@@ -52,6 +52,10 @@ class OrganizationViewSet(BaseModelViewSet):
     pagination_class = None
     filter_fields = ('is_on_sales',)
 
+    def get_queryset(self):
+        queryset = super(OrganizationViewSet, self).get_queryset()
+        return queryset.order_by('-is_on_sales', 'org_type', 'name')
+
 
 class MemberListApiView(BaseApiView):
 
@@ -95,3 +99,14 @@ class DivisionListApiView(BaseApiView):
             'count': qs_org.count(),
             'results': serializers.OrganizationSerializer(qs_org, many=True).data,
         }
+
+
+class SalespersonViewSet(BaseModelViewSet):
+    queryset = models.Salesperson.objects.all()
+    serializer_class = serializers.SalespersonSerializer
+
+
+class SalespersonPeriodViewSet(BaseModelViewSet):
+    queryset = models.SalespersonPeriod.objects.all()
+    serializer_class = serializers.SalespersonPeriodSerializer
+    filter_fields = ('member',)

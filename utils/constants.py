@@ -147,6 +147,13 @@ CHOICE_MEMBER_TYPE = (
     ('6', "アルバイト"),
     ('7', "正社員（試用期間）")
 )
+CHOICE_SALESPERSON_TYPE = (
+    ('0', "営業部長"),
+    ('1', "その他"),
+    ('5', "営業担当"),
+    ('6', "取締役"),
+    ('7', "代表取締役社長")
+)
 CHOICE_MONTH_LIST = (
     ('01', '1月'),
     ('02', '2月'),
@@ -190,6 +197,7 @@ DICT_PROJECT_MEMBER_STATUS_CLASS = {
 
 ERROR_DELETE_PROTECTED = '関連付けの{name}が存在して、削除できません。'
 ERROR_DATE_CONFLICT = '日付{date}が重複しています。'
+ERROR_DATE_CONTRADICT = '{start}と{end}の期間が不正です。'
 ERROR_NOT_IMPLEMENTED = '未実装です。'
 ERROR_NO_ATTENDANCE = '{name}の出勤情報がありません。'
 ERROR_UNKNOWN_ATTACHMENT = '識別できないファイルです。'

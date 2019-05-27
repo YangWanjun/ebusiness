@@ -57,6 +57,12 @@ class OrganizationViewSet(BaseModelViewSet):
         return queryset.order_by('-is_on_sales', 'org_type', 'name')
 
 
+class PositionShipViewSet(BaseModelViewSet):
+    queryset = models.PositionShip.objects.all()
+    serializer_class = serializers.PositionShipSerializer
+    filter_fields = ('organization',)
+
+
 class MemberListApiView(BaseApiView):
 
     def get_context_data(self, **kwargs):

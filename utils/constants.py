@@ -168,6 +168,20 @@ CHOICE_MONTH_LIST = (
     ('11', '11月'),
     ('12', '12月')
 )
+CHOICE_POSITION = (
+    (Decimal('1.0'), "代表取締役"),
+    (Decimal('1.1'), "取締役"),
+    (Decimal('3.0'), "事業部長"),
+    (Decimal('3.1'), "副事業部長"),
+    (Decimal('4.0'), "部長"),
+    (Decimal('5.0'), "担当部長"),
+    (Decimal('6.0'), "課長"),
+    (Decimal('7.0'), "担当課長"),
+    (Decimal('8.0'), "PM"),
+    (Decimal('9.0'), "リーダー"),
+    (Decimal('10.0'), "サブリーダー"),
+    (Decimal('11.0'), "勤務統計者")
+)
 
 DICT_MONTH_EN = {
     '01': 'Jan',

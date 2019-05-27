@@ -28,9 +28,22 @@ class MemberSerializer(BaseModelSerializer):
 
 
 class OrganizationSerializer(BaseModelSerializer):
+    parent_name = serializers.CharField(source='parent.name', read_only=True, label='親組織')
+    parent_url = serializers.SerializerMethodField(read_only=True, label='親組織のＵＲＬ')
 
     class Meta:
         model = models.Organization
+        fields = '__all__'
+
+    def get_parent_url(self, obj):
+        return '/organization/{pk}'.format(pk=obj.parent.pk) if obj.parent else None
+
+
+class PositionShipSerializer(BaseModelSerializer):
+    member_name = serializers.CharField(source='member.full_name', read_only=True, label='メンバー')
+
+    class Meta:
+        model = models.PositionShip
         fields = '__all__'
 
 

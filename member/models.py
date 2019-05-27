@@ -72,6 +72,27 @@ class Organization(BaseModel):
         return self.name
 
 
+class PositionShip(BaseModel):
+    member = models.ForeignKey(Member, on_delete=models.PROTECT, verbose_name="社員名")
+    position = models.DecimalField(
+        blank=True, null=True, max_digits=4, decimal_places=1, choices=constants.CHOICE_POSITION, verbose_name="職位"
+    )
+    organization = models.ForeignKey(Organization, db_column='section_id', on_delete=models.PROTECT, verbose_name="所属")
+    is_part_time = models.BooleanField(default=False, verbose_name="兼任")
+    created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
+    deleted_dt = models.DateTimeField(
+        blank=True, null=True, editable=False, db_column='deleted_date', verbose_name="更新日時"
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'eb_positionship'
+        default_permissions = ()
+        verbose_name = "職位"
+        verbose_name_plural = "職位一覧"
+
+
 class OrganizationPeriod(BaseModel):
     member = models.ForeignKey(Member, on_delete=models.PROTECT, verbose_name="社員")
     division = models.ForeignKey(

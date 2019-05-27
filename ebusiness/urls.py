@@ -57,6 +57,7 @@ urlpatterns = [
     url(r'^api/member/(?P<member_id>\d+)/details/$', member_api.MemberDetailsApiView.as_view()),
     url(r'^api/member/search$', member_api.SearchMemberView.as_view()),
     url(r'^api/organization-division/$', member_api.DivisionListApiView.as_view()),
+    url(r'^api/organization-view/', member_api.OrganizationListApiView.as_view()),
     url(r'^api/project/search$', project_api.SearchProjectView.as_view()),
     url(r'^api/project/(?P<pk>\d+)/attendance$', project_api.ProjectAttendanceList.as_view()),
     url(r'^api/project/(?P<pk>\d+)/attendance/(?P<year>\d{4})/(?P<month>\d{2})$',

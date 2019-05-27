@@ -110,3 +110,13 @@ class SalespersonPeriodViewSet(BaseModelViewSet):
     queryset = models.SalespersonPeriod.objects.all()
     serializer_class = serializers.SalespersonPeriodSerializer
     filter_fields = ('member',)
+
+
+class OrganizationListApiView(BaseApiView):
+
+    def get_context_data(self, **kwargs):
+        organizations = biz.get_organization_list()
+        return {
+            'count': len(organizations),
+            'results': organizations,
+        }

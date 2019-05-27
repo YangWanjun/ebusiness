@@ -119,3 +119,12 @@ def get_salesperson_history(member_id):
         cursor.callproc('sp_salesperson_history', (member_id,))
         results = common.dictfetchall(cursor)
     return results
+
+
+def get_organization_list():
+    with connection.cursor() as cursor:
+        cursor.callproc('sp_organization_list')
+        results = common.dictfetchall(cursor)
+    for row in results:
+        row['url'] = '/organization/{pk}'.format(pk=row.get('id'))
+    return results

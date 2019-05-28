@@ -1,7 +1,9 @@
+from decimal import Decimal
+
 from rest_framework import serializers
 
 from . import models
-from utils import constants
+from utils import constants, common
 from utils.rest_base import BaseModelSerializer
 
 
@@ -41,10 +43,28 @@ class OrganizationSerializer(BaseModelSerializer):
 
 class PositionShipSerializer(BaseModelSerializer):
     member_name = serializers.CharField(source='member.full_name', read_only=True, label='メンバー')
+    organization_name = serializers.CharField(source='organization.name', read_only=True, label='部署名称')
+    position = serializers.CharField(label='職位')
 
     class Meta:
         model = models.PositionShip
         fields = '__all__'
+
+    def validate_position(self, value):
+        organization = models.Organization.objects.get(pk=self.get_initial()['organization'])
+        if organization.org_type == '01' and value not in ('3.0', '3.1'):
+            raise serializers.ValidationError(constants.ERROR_ORGANIZATION_POSITION.format(
+                org_type='事業部', value=common.get_choice_name_by_key(constants.CHOICE_POSITION, Decimal(value)),
+            ))
+        elif organization.org_type == '02' and value not in ('4.0', '5.0'):
+            raise serializers.ValidationError(constants.ERROR_ORGANIZATION_POSITION.format(
+                org_type='部署', value=common.get_choice_name_by_key(constants.CHOICE_POSITION, Decimal(value)),
+            ))
+        elif organization.org_type == '03' and value not in ('6.0', '7.0'):
+            raise serializers.ValidationError(constants.ERROR_ORGANIZATION_POSITION.format(
+                org_type='課', value=common.get_choice_name_by_key(constants.CHOICE_POSITION, Decimal(value)),
+            ))
+        return value
 
 
 class OrganizationPeriodSerializer(BaseModelSerializer):

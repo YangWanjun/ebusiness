@@ -190,3 +190,18 @@ def get_attachment_path(self, filename):
     now = datetime.datetime.now()
     path = os.path.join(now.strftime('%Y'), now.strftime('%m'))
     return os.path.join(path, self.uuid + ext)
+
+
+def get_choice_name_by_key(choices, key):
+    """２次元のTupleからキーによって、名称を取得する。
+
+    :param choices:
+    :param key:
+    :return:
+    """
+    if choices and key:
+        if isinstance(choices, (tuple, list)):
+            for k, v in choices:
+                if k == key:
+                    return v
+    return ''

@@ -1,8 +1,10 @@
 from django.core.validators import RegexValidator
-from django.db import models
+from django.db import models, transaction
+from django.db.models.fields.reverse_related import ForeignObjectRel
 from django.utils import timezone
 
 from utils import constants
+from utils.errors import CustomException
 
 
 class DefaultManager(models.Manager):
@@ -26,6 +28,27 @@ class BaseModel(models.Model):
 
     class Meta:
         abstract = True
+
+    @transaction.atomic
+    def delete(self, using=None, keep_parents=False):
+        for f in self._meta.get_fields():
+            if not isinstance(f, ForeignObjectRel):
+                continue
+            related_name = f.get_accessor_name()
+            if not related_name or not hasattr(self, related_name):
+                continue
+            elif f.on_delete == models.DO_NOTHING:
+                continue
+            elif not hasattr(f.related_model, 'is_deleted'):
+                continue
+            qs = getattr(self, related_name).filter(is_deleted=False)
+            if f.on_delete == models.PROTECT and qs.count() > 0:
+                raise CustomException(constants.ERROR_DELETE_PROTECTED.format(
+                    name=f.related_model._meta.verbose_name,
+                ))
+        self.is_deleted = True
+        self.deleted_dt = timezone.now()
+        self.save(update_fields=('is_deleted', 'deleted_dt'))
 
 
 class BaseView(models.Model):

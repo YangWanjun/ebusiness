@@ -209,11 +209,12 @@ DICT_PROJECT_MEMBER_STATUS_CLASS = {
     '2': 'green',  # 作業確定
 }
 
-ERROR_DELETE_PROTECTED = '関連付けの{name}が存在して、削除できません。'
-ERROR_DATE_CONFLICT = '日付{date}が重複しています。'
-ERROR_DATE_CONTRADICT = '{start}と{end}の期間が不正です。'
+ERROR_DELETE_PROTECTED = '関連付けの {name} が存在しますので、削除できません。'
+ERROR_DATE_CONFLICT = '日付 {date} が重複しています。'
+ERROR_DATE_CONTRADICT = '{start} と {end} の期間が不正です。'
 ERROR_NOT_IMPLEMENTED = '未実装です。'
-ERROR_NO_ATTENDANCE = '{name}の出勤情報がありません。'
+ERROR_NO_ATTENDANCE = '{name} の出勤情報がありません。'
 ERROR_UNKNOWN_ATTACHMENT = '識別できないファイルです。'
 ERROR_FILE_NOT_FOUND = 'ファイルは見つかりません。'
-ERROR_REQUIRE_FIELD = '{name}は必須項目です。'
+ERROR_REQUIRE_FIELD = '{name} は必須項目です。'
+ERROR_ORGANIZATION_POSITION = '{org_type} の場合 {value} は選択できません。'

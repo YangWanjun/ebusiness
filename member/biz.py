@@ -1,8 +1,10 @@
+from decimal import Decimal
+
 from django.db import connection
 from django.utils import timezone
 
 from . import models, serializers
-from utils import common
+from utils import common, constants
 
 
 def get_me(user):
@@ -127,4 +129,18 @@ def get_organization_list():
         results = common.dictfetchall(cursor)
     for row in results:
         row['url'] = '/organization/{pk}'.format(pk=row.get('id'))
+    return results
+
+
+def get_organization_members(org_id):
+    with connection.cursor() as cursor:
+        cursor.callproc('sp_organization_members', (org_id,))
+        results = common.dictfetchall(cursor)
+    for row in results:
+        if row.get('positions') is None:
+            continue
+        positions = row.get('positions').split(',')
+        row['positions'] = ",".join([
+            common.get_choice_name_by_key(constants.CHOICE_POSITION, Decimal(pos)) for pos in positions
+        ])
     return results

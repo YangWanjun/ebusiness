@@ -84,7 +84,7 @@ def search_project(keyword):
     """
     queryset = models.Project.objects.all()
     for bit in keyword.split():
-        or_queries = [Q(**{orm_lookup: bit}) for orm_lookup in ('name__icontains', 'client__name__icontains')]
+        or_queries = [Q(**{orm_lookup: bit}) for orm_lookup in ('name__icontains', 'customer__name__icontains')]
         queryset = queryset.filter(reduce(operator.or_, or_queries))
     return queryset
 
@@ -104,16 +104,16 @@ def get_request_data(request_no):
     return data
 
 
-def generate_request_data(company, project, client_order, year, month, initial):
-    heading = generate_request_heading(company, project, client_order, year, month, initial)
-    details = generate_request_details(project, client_order, year, month, heading)
+def generate_request_data(company, project, customer_order, year, month, initial):
+    heading = generate_request_heading(company, project, customer_order, year, month, initial)
+    details = generate_request_details(project, customer_order, year, month, heading)
     heading.update(details['summary'])
     data = {'heading': heading}
     data.update(details)
     return data
 
 
-def generate_request_heading(company, project, client_order, year, month, initial):
+def generate_request_heading(company, project, customer_order, year, month, initial):
     first_day = common.get_first_day_from_ym(year + month)
     first_day = project.start_date if project.start_date > first_day else first_day
     last_day = common.get_last_day_from_ym(year + month)
@@ -122,13 +122,13 @@ def generate_request_heading(company, project, client_order, year, month, initia
     # 代表取締役
     data['MASTER'] = company.president
     # お客様郵便番号
-    data['CLIENT_POST_CODE'] = common.get_full_postcode(project.client.post_code)
+    data['CUSTOMER_POST_CODE'] = common.get_full_postcode(project.customer.post_code)
     # お客様住所
-    data['CLIENT_ADDRESS'] = (project.client.address1 or '') + (project.client.address2 or '')
+    data['CUSTOMER_ADDRESS'] = (project.customer.address1 or '') + (project.customer.address2 or '')
     # お客様電話番号
-    data['CLIENT_TEL'] = project.client.tel or ''
+    data['CUSTOMER_TEL'] = project.customer.tel or ''
     # お客様名称
-    data['CLIENT_COMPANY_NAME'] = project.client.name
+    data['CUSTOMER_COMPANY_NAME'] = project.customer.name
     # 作業期間
     f = '%Y{0}%m{1}%d{2}'
     period_start = first_day.strftime(f).format(*'年月日')
@@ -140,17 +140,17 @@ def generate_request_heading(company, project, client_order, year, month, initia
     if initial and 'order_no' in initial:
         data['ORDER_NO'] = initial.get('order_no')
     else:
-        data['ORDER_NO'] = client_order.order_no if client_order.order_no else ""
+        data['ORDER_NO'] = customer_order.order_no if customer_order.order_no else ""
     # 注文日
-    data['REQUEST_DATE'] = client_order.order_date.strftime('%Y/%m/%d') if client_order.order_date else ""
+    data['REQUEST_DATE'] = customer_order.order_date.strftime('%Y/%m/%d') if customer_order.order_date else ""
     # 契約件名
     if initial and 'contract_name' in initial:
         data['CONTRACT_NAME'] = initial.get('contract_name')
     else:
-        data['CONTRACT_NAME'] = client_order.name
+        data['CONTRACT_NAME'] = customer_order.name
     # お支払い期限
-    data['REMIT_DATE'] = project.client.get_pay_date(date=first_day).strftime('%Y/%m/%d')
-    data['REMIT_DATE_PURE'] = project.client.get_pay_date(date=first_day)
+    data['REMIT_DATE'] = project.customer.get_pay_date(date=first_day).strftime('%Y/%m/%d')
+    data['REMIT_DATE_PURE'] = project.customer.get_pay_date(date=first_day)
     # # 請求番号
     # data['REQUEST_NO'] = project.get_next_request_no(year, month)
     # 発行日（対象月の最終日）
@@ -167,7 +167,7 @@ def generate_request_heading(company, project, client_order, year, month, initia
     if initial and 'bank_account' in initial:
         bank_account = initial.get('bank_account')
     else:
-        bank_account = client_order.bank_account
+        bank_account = customer_order.bank_account
     data['BANK_ACCOUNT'] = bank_account
     # 振込先銀行名称
     data['BANK_NAME'] = bank_account.bank.name if bank_account else ""
@@ -186,11 +186,11 @@ def generate_request_heading(company, project, client_order, year, month, initia
     return data
 
 
-def generate_request_details(project, client_order, year, month, heading):
+def generate_request_details(project, customer_order, year, month, heading):
     detail_all = dict()
     detail_members = []
     members_amount = 0
-    project_members = get_request_members_in_project(project, client_order, year, month)
+    project_members = get_request_members_in_project(project, customer_order, year, month)
     if project.is_lump:
         members_amount = project.lump_amount
         # 番号
@@ -237,7 +237,7 @@ def generate_request_details(project, client_order, year, month, heading):
         month,
         project_members
     )
-    tax_amount = common.get_consumption_tax(members_amount, project.client.tax_rate, project.client.decimal_type)
+    tax_amount = common.get_consumption_tax(members_amount, project.customer.tax_rate, project.customer.decimal_type)
 
     return {
         'detail_all': detail_all,
@@ -254,27 +254,27 @@ def generate_request_details(project, client_order, year, month, heading):
     }
 
 
-def get_request_members_in_project(project, client_order, year, month):
+def get_request_members_in_project(project, customer_order, year, month):
     """指定案件の指定注文書の中に、対象のメンバーを取得する。
 
     :param project: 指定案件
-    :param client_order: 指定注文書
+    :param customer_order: 指定注文書
     :param year: 対象年
     :param month: 対象月
     :return: メンバーのリスト
     """
     first_day = common.get_first_day_from_ym(year + month)
     last_day = common.get_last_day_by_month(first_day)
-    if client_order.projects.filter(is_deleted=False).count() > 1:
+    if customer_order.projects.filter(is_deleted=False).count() > 1:
         # 一つの注文書に複数の案件がある場合
-        projects = client_order.projects.filter(is_deleted=False)
+        projects = customer_order.projects.filter(is_deleted=False)
         project_members = models.ProjectMember.objects.filter(
             project__in=projects,
             start_date__lte=last_day,
             end_date__gte=first_day,
             is_deleted=False,
         )
-    elif project.clientorder_set.filter(
+    elif project.customerorder_set.filter(
             start_date__lte=last_day, end_date__gte=first_day, is_deleted=False
     ).count() > 1:
         # １つの案件に複数の注文書ある場合

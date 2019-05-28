@@ -21,7 +21,7 @@ class TurnoverMonthlyChartView(BaseApiView):
     """月単位の売上情報を最近の12か月間表示する
     """
 
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
         data = biz.get_turnover_monthly_chart()
         return Response({'data': data})
 
@@ -30,37 +30,37 @@ class TurnoverYearlyChartView(BaseApiView):
     """年間売上情報を表示する
     """
 
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
         data = biz.get_turnover_yearly_chart()
         return Response({'data': data})
 
 
 class TurnoverMonthlyByDivisionChartView(BaseApiView):
 
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
         data = biz.get_turnover_monthly_by_department_chart()
         return Response({'data': data})
 
 
-class TurnoverClientsByMonthFilter(django_filters.FilterSet):
+class TurnoverCustomersByMonthFilter(django_filters.FilterSet):
 
    class Meta:
-        model = models.TurnoverClientsByMonth
+        model = models.TurnoverCustomersByMonth
         fields = {
-            'client_name': ['icontains'],
+            'customer_name': ['icontains'],
         }
 
 
-class TurnoverClientsByMonthViewSet(BaseReadOnlyModelViewSet):
-    queryset = models.TurnoverClientsByMonth.objects.all()
-    serializer_class = serializers.TurnoverClientsByMonthSerializer
+class TurnoverCustomersByMonthViewSet(BaseReadOnlyModelViewSet):
+    queryset = models.TurnoverCustomersByMonth.objects.all()
+    serializer_class = serializers.TurnoverCustomersByMonthSerializer
     list_display = (
-        'client_name', 'cost', 'turnover_amount', 'tax_amount', 'expenses_amount', 'amount',
+        'customer_name', 'cost', 'turnover_amount', 'tax_amount', 'expenses_amount', 'amount',
         'profit_amount', 'profit_rate'
     )
-    list_display_links = ('client_name',)
-    filter_fields = ('client_name',)
-    filter_class = TurnoverClientsByMonthFilter
+    list_display_links = ('customer_name',)
+    filter_fields = ('customer_name',)
+    filter_class = TurnoverCustomersByMonthFilter
 
     def get_queryset(self):
         today = datetime.date.today()
@@ -69,7 +69,7 @@ class TurnoverClientsByMonthViewSet(BaseReadOnlyModelViewSet):
         return self.queryset.filter(year=year, month=month)
 
 
-class TurnoverClientByMonthFilter(django_filters.FilterSet):
+class TurnoverCustomerByMonthFilter(django_filters.FilterSet):
 
    class Meta:
         model = models.TurnoverProject
@@ -87,17 +87,17 @@ class TurnoverProjectViewSet(BaseReadOnlyModelViewSet):
     )
     list_display_links = ('project_name',)
     filter_fields = ('project_name',)
-    filter_class = TurnoverClientByMonthFilter
+    filter_class = TurnoverCustomerByMonthFilter
 
     def get_queryset(self):
         today = datetime.date.today()
         year = self.request.GET.get('year', today.strftime('%Y'))
         month = self.request.GET.get('month', today.strftime('%m'))
-        client_id = self.request.GET.get('client_id', None)
+        customer_id = self.request.GET.get('customer_id', None)
         if self.kwargs:
             return self.queryset.filter(year=year, month=month)
-        elif client_id:
-            return self.queryset.filter(year=year, month=month, client_id=client_id)
+        elif customer_id:
+            return self.queryset.filter(year=year, month=month, customer_id=customer_id)
         else:
             return self.queryset.none()
 

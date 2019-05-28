@@ -20,7 +20,7 @@ logger = common.get_system_logger()
 
 
 # Create your models here.
-class Client(AbstractCompany):
+class Customer(AbstractCompany):
     kana = models.CharField(max_length=30, blank=True, null=True, db_column='japanese_spell', verbose_name="フリカナ")
     payment_month = models.CharField(
         max_length=1, blank=True, null=True, default='1',
@@ -68,11 +68,11 @@ class Client(AbstractCompany):
             return datetime.date(pay_month.year, pay_month.month, pay_day)
 
 
-class ClientMember(BaseModel):
+class CustomerMember(BaseModel):
     name = models.CharField(max_length=30, verbose_name="名前")
     email = models.EmailField(blank=True, null=True, verbose_name="メールアドレス")
     phone = models.CharField(max_length=11, blank=True, null=True, verbose_name="電話番号")
-    client = models.ForeignKey(Client, on_delete=models.PROTECT, verbose_name="所属会社")
+    customer = models.ForeignKey(Customer, db_column='client_id', on_delete=models.PROTECT, verbose_name="所属会社")
     created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
     updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
     deleted_dt = models.DateTimeField(
@@ -127,13 +127,15 @@ class Project(BaseModel):
         default=False, verbose_name="待機案件フラグ",
         help_text="バーチャル案件です、コストなどを算出ために非稼働メンバーをこの案件にアサインすればいい。"
     )
-    client = models.ForeignKey(Client, null=True, on_delete=models.PROTECT, verbose_name="関連会社")
+    customer = models.ForeignKey(
+        Customer, null=True, db_column='client_id', on_delete=models.PROTECT, verbose_name="関連会社",
+    )
     manager = models.ForeignKey(
-        ClientMember, blank=False, null=True, db_column='boss_id', on_delete=models.PROTECT,
+        CustomerMember, blank=False, null=True, db_column='boss_id', on_delete=models.PROTECT,
         related_name="manager_set", verbose_name="案件責任者"
     )
     contact = models.ForeignKey(
-        ClientMember, blank=True, null=True, db_column='middleman_id', on_delete=models.PROTECT,
+        CustomerMember, blank=True, null=True, db_column='middleman_id', on_delete=models.PROTECT,
         related_name="contact_set", verbose_name="案件連絡者"
     )
     organization = models.ForeignKey(
@@ -150,7 +152,7 @@ class Project(BaseModel):
         managed = False
         db_table = 'eb_project'
         ordering = ['name']
-        unique_together = ('name', 'client')
+        unique_together = ('name', 'customer')
         default_permissions = ()
         verbose_name = "案件"
         verbose_name_plural = '案件一覧1'
@@ -158,22 +160,22 @@ class Project(BaseModel):
     def __str__(self):
         return self.name
 
-    def get_project_request(self, year, month, client_order):
+    def get_project_request(self, year, month, customer_order):
         """請求番号を取得する。
 
         :param year: 対象年
         :param month: 対象月
-        :param client_order: 注文書
+        :param customer_order: 注文書
         :return:
         """
         try:
-            return self.projectrequest_set.get(year=year, month=month, client_order=client_order)
+            return self.projectrequest_set.get(year=year, month=month, customer_order=customer_order)
         except ObjectDoesNotExist:
             # 指定年月の請求番号がない場合、請求番号を発行する。
             next_request_no = self.get_next_request_no(year, month)
             return ProjectRequest(
                 project=self,
-                client_order=client_order,
+                customer_order=customer_order,
                 year=year,
                 month=month,
                 request_no=next_request_no
@@ -224,7 +226,7 @@ class ProjectMember(BaseModel):
     )
     role = models.CharField(max_length=2, default="PG", choices=constants.CHOICE_PROJECT_ROLE, verbose_name="作業区分")
     contract_type = models.CharField(
-        max_length=2, blank=True, null=True, choices=constants.CHOICE_CLIENT_CONTRACT_TYPE,
+        max_length=2, blank=True, null=True, choices=constants.CHOICE_CUSTOMER_CONTRACT_TYPE,
         verbose_name="契約形態"
     )
     stages = models.ManyToManyField(ProjectStage, blank=True, verbose_name="作業工程")
@@ -334,8 +336,8 @@ class ProjectMember(BaseModel):
 
 class VProject(BaseView):
     name = models.CharField(max_length=50, blank=False, null=False, verbose_name="案件名称")
-    client_id = models.PositiveIntegerField(blank=True, null=True, verbose_name="関連会社ＩＤ")
-    client_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="関連会社名称")
+    customer_id = models.PositiveIntegerField(blank=True, null=True, verbose_name="関連会社ＩＤ")
+    customer_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="関連会社名称")
     business_type = models.CharField(
         max_length=2, blank=False, null=True,
         choices=constants.CHOICE_PROJECT_BUSINESS_TYPE,
@@ -430,8 +432,12 @@ class MemberExpenses(BaseModel):
         verbose_name_plural = "取引先精算一覧"
 
 
-class ClientOrder(BaseModel):
-    projects = models.ManyToManyField(Project, verbose_name="案件")
+class CustomerOrder(BaseModel):
+    projects = models.ManyToManyField(
+        Project,
+        through='ProjectOrder', through_fields=('customer_order', 'project'),
+        verbose_name="案件"
+    )
     name = models.CharField(max_length=50, verbose_name="注文書名称")
     start_date = models.DateField(verbose_name="開始日")
     end_date = models.DateField(verbose_name="終了日")
@@ -439,7 +445,7 @@ class ClientOrder(BaseModel):
     order_date = models.DateField(blank=False, null=True, verbose_name="注文日")
     contract_type = models.CharField(
         max_length=2, blank=False, null=True,
-        choices=constants.CHOICE_CLIENT_CONTRACT_TYPE, verbose_name="契約形態"
+        choices=constants.CHOICE_CUSTOMER_CONTRACT_TYPE, verbose_name="契約形態"
     )
     bank_account = models.ForeignKey(
         BankAccount, blank=False, null=True, db_column='bank_info_id', on_delete=models.PROTECT, verbose_name="振込先口座"
@@ -465,9 +471,24 @@ class ClientOrder(BaseModel):
         return self.name
 
 
+class ProjectOrder(models.Model):
+    customer_order = models.ForeignKey(CustomerOrder, db_column='clientorder_id', on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, db_column='project_id', on_delete=models.CASCADE)
+
+    class Meta:
+        managed = False
+        db_table = 'eb_clientorder_projects'
+        default_permissions = ()
+        verbose_name = "案件注文書"
+        verbose_name_plural = "案件注文書一覧"
+
+
 class ProjectRequest(BaseModel):
     project = models.ForeignKey(Project, on_delete=models.PROTECT, verbose_name="案件")
-    client_order = models.ForeignKey(ClientOrder, blank=True, null=True, on_delete=models.PROTECT, verbose_name="注文書")
+    customer_order = models.ForeignKey(
+        CustomerOrder, blank=True, null=True, db_column='client_order_id', on_delete=models.PROTECT,
+        verbose_name="注文書"
+    )
     year = models.CharField(max_length=4, validators=(RegexValidator(regex='^20[0-9]{2}$'),), verbose_name="対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_MONTH_LIST, verbose_name="対象月")
     request_no = models.CharField(max_length=7, unique=True, verbose_name="請求番号")
@@ -494,7 +515,7 @@ class ProjectRequest(BaseModel):
         db_table = 'eb_projectrequest'
         default_permissions = ()
         ordering = ('-request_no',)
-        unique_together = ('project', 'client_order', 'year', 'month')
+        unique_together = ('project', 'customer_order', 'year', 'month')
         verbose_name = "案件請求情報"
         verbose_name_plural = "案件請求情報一覧"
 
@@ -518,13 +539,13 @@ class ProjectRequest(BaseModel):
                 lump_amount=self.project.lump_amount,
                 lump_comment=self.project.lump_comment,
                 is_hourly_pay=self.project.is_hourly_pay,
-                client=self.project.client,
-                client_post_code=data['heading']['CLIENT_POST_CODE'],
-                client_address=data['heading']['CLIENT_ADDRESS'],
-                client_tel=data['heading']['CLIENT_TEL'],
-                client_name=data['heading']['CLIENT_COMPANY_NAME'],
-                tax_rate=self.project.client.tax_rate,
-                decimal_type=self.project.client.decimal_type,
+                customer=self.project.customer,
+                customer_post_code=data['heading']['CUSTOMER_POST_CODE'],
+                customer_address=data['heading']['CUSTOMER_ADDRESS'],
+                customer_tel=data['heading']['CUSTOMER_TEL'],
+                customer_name=data['heading']['CUSTOMER_COMPANY_NAME'],
+                tax_rate=self.project.customer.tax_rate,
+                decimal_type=self.project.customer.decimal_type,
                 work_period_start=data['heading']['WORK_PERIOD_START'],
                 work_period_end=data['heading']['WORK_PERIOD_END'],
                 remit_date=data['heading']['REMIT_DATE_PURE'],
@@ -603,11 +624,21 @@ class ProjectRequestHeading(BaseModel):
     lump_amount = models.BigIntegerField(default=0, blank=True, null=True, verbose_name="一括金額")
     lump_comment = models.CharField(blank=True, null=True, max_length=200, verbose_name="一括の備考")
     is_hourly_pay = models.BooleanField(default=False, verbose_name="時給")
-    client = models.ForeignKey(Client, null=True, on_delete=models.PROTECT, verbose_name="関連会社")
-    client_post_code = models.CharField(blank=True, null=True, max_length=8, verbose_name="お客様郵便番号")
-    client_address = models.CharField(blank=True, null=True, max_length=200, verbose_name="お客様住所１")
-    client_tel = models.CharField(blank=True, null=True, max_length=15, verbose_name="お客様電話番号")
-    client_name = models.CharField(blank=True, null=True, max_length=30, verbose_name="お客様会社名")
+    customer = models.ForeignKey(
+        Customer, null=True, db_column='client_id', on_delete=models.PROTECT, verbose_name="関連会社"
+    )
+    customer_post_code = models.CharField(
+        blank=True, null=True, db_column='client_post_code', max_length=8, verbose_name="お客様郵便番号"
+    )
+    customer_address = models.CharField(
+        blank=True, null=True, db_column='client_address', max_length=200, verbose_name="お客様住所１"
+    )
+    customer_tel = models.CharField(
+        blank=True, null=True, db_column='client_tel', max_length=15, verbose_name="お客様電話番号"
+    )
+    customer_name = models.CharField(
+        blank=True, null=True, db_column='client_name', max_length=30, verbose_name="お客様会社名"
+    )
     tax_rate = models.DecimalField(blank=True, null=True, max_digits=3, decimal_places=2, verbose_name="税率")
     decimal_type = models.CharField(
         blank=True, null=True, max_length=1, choices=constants.CHOICE_DECIMAL_TYPE,
@@ -641,6 +672,9 @@ class ProjectRequestHeading(BaseModel):
         default_permissions = ()
         verbose_name = "案件請求見出し"
         verbose_name_plural = "案件請求見出し一覧"
+
+    def delete(self, using=None, keep_parents=False):
+        return super(BaseModel, self).delete(using, keep_parents)
 
 
 class ProjectRequestDetail(BaseModel):
@@ -681,3 +715,6 @@ class ProjectRequestDetail(BaseModel):
         unique_together = ('project_request', 'no')
         verbose_name = "案件請求明細"
         verbose_name_plural = "案件請求明細一覧"
+
+    def delete(self, using=None, keep_parents=False):
+        return super(BaseModel, self).delete(using, keep_parents)

@@ -19,9 +19,9 @@ from utils.rest_base import BaseModelViewSet, BaseModelSchemaView, BaseApiView
 
 
 # Create your views here.
-class ClientViewSet(BaseModelViewSet):
-    queryset = models.Client.objects.all()
-    serializer_class = serializers.ClientSerializer
+class CustomerViewSet(BaseModelViewSet):
+    queryset = models.Customer.objects.all()
+    serializer_class = serializers.CustomerSerializer
     list_display = ('name',)
     list_display_links = ('name',)
     filter_fields = ('name',)
@@ -34,10 +34,10 @@ class ClientViewSet(BaseModelViewSet):
             return self.queryset.filter(name__icontains=search)
 
 
-class ClientMemberViewSet(BaseModelViewSet):
-    queryset = models.ClientMember.objects.all()
-    serializer_class = serializers.ClientMemberSerializer
-    list_display = ('name', 'client__name', 'email')
+class CustomerMemberViewSet(BaseModelViewSet):
+    queryset = models.CustomerMember.objects.all()
+    serializer_class = serializers.CustomerMemberSerializer
+    list_display = ('name', 'customer__name', 'email')
 
     def get_queryset(self):
         search = self.request.GET.get('search')
@@ -46,7 +46,7 @@ class ClientMemberViewSet(BaseModelViewSet):
             return queryset
         else:
             for bit in search.split():
-                or_queries = [Q(**{orm_lookup: bit}) for orm_lookup in ('name__icontains', 'client__name__icontains')]
+                or_queries = [Q(**{orm_lookup: bit}) for orm_lookup in ('name__icontains', 'customer__name__icontains')]
                 queryset = queryset.filter(reduce(operator.or_, or_queries))
             return queryset
 
@@ -57,7 +57,7 @@ class VProjectFilter(django_filters.FilterSet):
         model = models.VProject
         fields = {
             'name': ['icontains'],
-            'client_name': ['icontains'],
+            'customer_name': ['icontains'],
             'business_type': ['iexact'],
             'status': ['iexact'],
         }
@@ -75,11 +75,11 @@ class VProjectViewSet(BaseModelViewSet):
     queryset = models.VProject.objects.all()
     serializer_class = serializers.VProjectSerializer
     list_display = (
-        'name', 'client_name', 'business_type', 'salesperson_name', 'member_name',
+        'name', 'customer_name', 'business_type', 'salesperson_name', 'member_name',
         'start_date', 'end_date', 'updated_dt', 'status'
     )
     list_display_links = ('name',)
-    filter_fields = ('name', 'client_name', 'business_type', 'status')
+    filter_fields = ('name', 'customer_name', 'business_type', 'status')
     filter_class = VProjectFilter
     choice_classes = {
         'status': constants.DICT_PROJECT_STATUS_CLASS,
@@ -159,9 +159,9 @@ class ProjectOrderListView(BaseApiView):
         }
 
 
-class ClientOrderViewSet(BaseModelViewSet):
-    queryset = models.ClientOrder.objects.all()
-    serializer_class = serializers.ClientOrderSerializer
+class CustomerOrderViewSet(BaseModelViewSet):
+    queryset = models.CustomerOrder.objects.all()
+    serializer_class = serializers.CustomerOrderSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -200,7 +200,7 @@ class SearchProjectView(BaseApiView):
                 "visible": True,
             },
             {
-                "name": "client__name",
+                "name": "customer__name",
                 "type": "string",
                 "label": "関連会社",
                 "visible": True,
@@ -248,7 +248,7 @@ class ProjectRequestCreateApiView(BaseApiView):
     def post(self, request, *args, **kwargs):
         company = Company.objects.first()
         project = get_object_or_404(models.Project, pk=kwargs.get('project_id'))
-        client_order = get_object_or_404(models.ClientOrder, pk=kwargs.get('order_id'))
+        customer_order = get_object_or_404(models.CustomerOrder, pk=kwargs.get('order_id'))
         year = kwargs.get('year')
         month = kwargs.get('month')
         initial = {
@@ -256,8 +256,8 @@ class ProjectRequestCreateApiView(BaseApiView):
             'contract_name': request.data.get('contract_name'),
             'order_no': request.data.get('order_no'),
         }
-        project_request = project.get_project_request(year, month, client_order)
-        request_data = biz.generate_request_data(company, project, client_order, year, month, initial)
+        project_request = project.get_project_request(year, month, customer_order)
+        request_data = biz.generate_request_data(company, project, customer_order, year, month, initial)
         heading = request_data.get('heading')
         byte_file = file_gen.generate_request(request_data, project_request.request_no)
         project_request.request_name = heading.get('CONTRACT_NAME')
@@ -277,7 +277,7 @@ class ProjectRequestCreateApiView(BaseApiView):
         )
         project_request.filename = attachment.uuid
         project_request.save(update_fields=('filename',))
-        data = serializers.ClientOrderSerializer(client_order).data
+        data = serializers.CustomerOrderSerializer(customer_order).data
         data['projects'] = biz.get_project_choice(data['projects'])
         data['request_no'] = project_request.request_no
         data['request_detail_url'] = '/project/{pk}/request/{request_no}'.format(

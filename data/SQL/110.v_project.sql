@@ -1,8 +1,8 @@
 CREATE OR REPLACE VIEW v_project AS
 select p.id
      , p.name
-     , c.id as client_id
-     , c.name as client_name
+     , c.id as customer_id
+     , c.name as customer_name
      , p.business_type
      , p.salesperson_id
      , concat(s.first_name, ' ', s.last_name) as salesperson_name

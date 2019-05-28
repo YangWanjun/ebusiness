@@ -26,15 +26,15 @@ def generate_request(data, request_no):
     sheet.write_number('O3', int(request_no))
     sheet.write_string('M4', "発  行 日")
     sheet.write_string('O4', data['heading']['PUBLISH_DATE'])
-    sheet.write_string('B3', "〒" + data['heading']['CLIENT_POST_CODE'])
-    sheet.write_string('B4', data['heading']['CLIENT_ADDRESS'])
-    sheet.write_string('B6', "Tel: " + data['heading']['CLIENT_TEL'])
+    sheet.write_string('B3', "〒" + data['heading']['CUSTOMER_POST_CODE'])
+    sheet.write_string('B4', data['heading']['CUSTOMER_ADDRESS'])
+    sheet.write_string('B6', "Tel: " + data['heading']['CUSTOMER_TEL'])
     name_format = book.add_format({
         'bold': True,
         'font_size': 12,
         'underline': 1
     })
-    sheet.write_string('B8', data['heading']['CLIENT_COMPANY_NAME'] + "御中", name_format)
+    sheet.write_string('B8', data['heading']['CUSTOMER_COMPANY_NAME'] + "御中", name_format)
     sheet.write_string('B10', "　下記のとおりご請求申し上げます。")
     format1 = book.add_format({
         'bold': True,

@@ -7,29 +7,29 @@ from utils import constants
 from utils.rest_base import BaseModelSerializer
 
 
-class ClientSerializer(BaseModelSerializer):
+class CustomerSerializer(BaseModelSerializer):
 
     class Meta:
-        model = models.Client
+        model = models.Customer
         fields = '__all__'
 
 
-class ClientMemberSerializer(BaseModelSerializer):
-    client__name = serializers.CharField(source='client.name', read_only=True, label='所属会社')
+class CustomerMemberSerializer(BaseModelSerializer):
+    customer__name = serializers.CharField(source='customer.name', read_only=True, label='所属会社')
 
     class Meta:
-        model = models.ClientMember
+        model = models.CustomerMember
         fields = '__all__'
 
 
 class ProjectSerializer(BaseModelSerializer):
-    client__name = serializers.CharField(source='client.name', read_only=True, label='関連会社')
+    customer__name = serializers.CharField(source='customer.name', read_only=True, label='関連会社')
     manager__name = serializers.CharField(source='manager.name', read_only=True, label='案件責任者')
     contact__name = serializers.CharField(source='contact.name', read_only=True, label='案件連絡者')
     organization__name = serializers.CharField(source='organization.name', read_only=True, label='所属部署')
-    decimal_type = serializers.CharField(source='client.decimal_type', read_only=True, label='小数の処理区分')
+    decimal_type = serializers.CharField(source='customer.decimal_type', read_only=True, label='小数の処理区分')
     tax_rate = serializers.DecimalField(
-        source='client.tax_rate', max_digits=3, decimal_places=2, read_only=True, label='税率'
+        source='customer.tax_rate', max_digits=3, decimal_places=2, read_only=True, label='税率'
     )
 
     class Meta:
@@ -77,11 +77,11 @@ class MemberAttendanceSerializer(BaseModelSerializer):
         fields = '__all__'
 
 
-class ClientOrderSerializer(BaseModelSerializer):
+class CustomerOrderSerializer(BaseModelSerializer):
     ym = serializers.SerializerMethodField(read_only=True, label='対象年月')
 
     class Meta:
-        model = models.ClientOrder
+        model = models.CustomerOrder
         fields = '__all__'
 
     def get_ym(self, obj):
@@ -90,7 +90,7 @@ class ClientOrderSerializer(BaseModelSerializer):
     def validate_start_date(self, value):
         projects = models.Project.objects.filter(pk__in=self.get_initial()['projects'])
         for project in projects:
-            qs = project.clientorder_set.filter(start_date__lte=value, end_date__gte=value)
+            qs = project.customerorder_set.filter(start_date__lte=value, end_date__gte=value)
             if self.instance and self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
             if qs.count() > 0:
@@ -100,7 +100,7 @@ class ClientOrderSerializer(BaseModelSerializer):
     def validate_end_date(self, value):
         projects = models.Project.objects.filter(pk__in=self.get_initial()['projects'])
         for project in projects:
-            qs = project.clientorder_set.filter(start_date__lte=value, end_date__gte=value)
+            qs = project.customerorder_set.filter(start_date__lte=value, end_date__gte=value)
             if self.instance and self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
             if qs.count() > 0:

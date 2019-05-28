@@ -119,25 +119,25 @@ table.request td.align_right {
             <tr></tr>
             <tr>
                 <td></td>
-                <td colspan="11">〒{{ data.heading.client_post_code }}</td>
+                <td colspan="11">〒{{ data.heading.customer_post_code }}</td>
                 <td colspan="2">請求番号</td>
                 <td colspan="2">{{ data.project_request.request_no }}</td>
             </tr>
             <tr>
                 <td></td>
-                <td colspan="11">{{ data.heading.client_address }}</td>
+                <td colspan="11">{{ data.heading.customer_address }}</td>
                 <td colspan="2">発  行 日</td>
                 <td colspan="2">{{ data.heading.publish_date }}</td>
             </tr>
             <tr></tr>
             <tr>
                 <td></td>
-                <td colspan="15">Tel: {{ data.heading.client_tel }}</td>
+                <td colspan="15">Tel: {{ data.heading.customer_tel }}</td>
             </tr>
             <tr></tr>
             <tr>
                 <td></td>
-                <td colspan="15" class="title2">{{ data.heading.client_name }}御中</td>
+                <td colspan="15" class="title2">{{ data.heading.customer_name }}御中</td>
             </tr>
             <tr></tr>
             <tr>
@@ -186,19 +186,19 @@ table.request td.align_right {
             <tr>
                 <td></td>
                 <td colspan="3">注文番号</td>
-                <td colspan="12">{{ data.project_request.client_order.order_no }}</td>
+                <td colspan="12">{{ data.project_request.customer_order.order_no }}</td>
             </tr>
             <tr></tr>
             <tr>
                 <td></td>
                 <td colspan="3">注文日</td>
-                <td colspan="12">{{ data.project_request.client_order.order_date|date:'Y/m/d' }}</td>
+                <td colspan="12">{{ data.project_request.customer_order.order_date|date:'Y/m/d' }}</td>
             </tr>
             <tr></tr>
             <tr>
                 <td></td>
                 <td colspan="3">契約件名</td>
-                <td colspan="12" style="white-space: nowrap;">{{ data.project_request.client_order.name }}</td>
+                <td colspan="12" style="white-space: nowrap;">{{ data.project_request.customer_order.name }}</td>
             </tr>
             <tr></tr>
             <tr>

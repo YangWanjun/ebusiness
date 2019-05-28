@@ -1,7 +1,7 @@
 from django.db import models
 
 from member.models import Organization
-from project.models import Client, Project
+from project.models import Customer, Project
 from utils.models import BaseView
 
 
@@ -83,8 +83,8 @@ class TurnoverMonthlyByOrganization(BaseView):
         return '{}年{}月'.format(self.year, self.month)
 
 
-class TurnoverClientsByMonth(BaseView):
-    client_name = models.CharField(max_length=30, verbose_name="会社名")
+class TurnoverCustomersByMonth(BaseView):
+    customer_name = models.CharField(max_length=30, verbose_name="会社名")
     year = models.CharField(max_length=4, verbose_name="請求年")
     month = models.CharField(max_length=2, verbose_name="請求月")
     cost = models.IntegerField(verbose_name="コスト")
@@ -97,20 +97,20 @@ class TurnoverClientsByMonth(BaseView):
 
     class Meta:
         managed = False
-        db_table = 'v_turnover_clients_by_month'
-        ordering = ('client_name',)
+        db_table = 'v_turnover_customers_by_month'
+        ordering = ('customer_name',)
         default_permissions = ()
         verbose_name = "お客様別売上"
         verbose_name_plural = "お客様別売上一覧"
 
     def __str__(self):
-        return self.client_name
+        return self.customer_name
 
 
 class TurnoverProject(BaseView):
     project_name = models.CharField(max_length=50, verbose_name="案件名")
-    client = models.ForeignKey(Client, on_delete=models.DO_NOTHING, verbose_name="会社ID")
-    client_name = models.CharField(max_length=30, verbose_name="会社名")
+    customer = models.ForeignKey(Customer, db_column='client_id', on_delete=models.DO_NOTHING, verbose_name="会社ID")
+    customer_name = models.CharField(max_length=30, verbose_name="会社名")
     year = models.CharField(max_length=4, verbose_name="請求年")
     month = models.CharField(max_length=2, verbose_name="請求月")
     cost = models.IntegerField(verbose_name="コスト")
@@ -140,7 +140,7 @@ class TurnoverMember(BaseView):
     )
     org_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="所属名称")
     project = models.ForeignKey(Project, on_delete=models.DO_NOTHING, verbose_name="案件")
-    client = models.ForeignKey(Client, on_delete=models.DO_NOTHING, verbose_name="取引先")
+    customer = models.ForeignKey(Customer, db_column='client_id', on_delete=models.DO_NOTHING, verbose_name="取引先")
     year = models.CharField(max_length=4, verbose_name="請求年")
     month = models.CharField(max_length=2, verbose_name="請求月")
     cost = models.IntegerField(verbose_name="コスト")

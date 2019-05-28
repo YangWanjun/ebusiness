@@ -114,7 +114,7 @@ CHOICE_PROJECT_ROLE = (
     ("L", "L：ﾘｰﾀﾞｰ"),
     ("M", "M：ﾏﾈｰｼﾞｬｰ")
 )
-CHOICE_CLIENT_CONTRACT_TYPE = (
+CHOICE_CUSTOMER_CONTRACT_TYPE = (
     ('01', "業務委託"),
     ('02', "準委任"),
     ('03', "派遣"),

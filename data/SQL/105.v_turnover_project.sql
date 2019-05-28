@@ -2,7 +2,7 @@ CREATE OR REPLACE VIEW v_turnover_project AS
 select p.id
      , p.name as project_name
      , p.client_id
-     , c.name as client_name
+     , c.name as customer_name
      , pr.year
      , pr.month
      , sum(pr.cost) as cost

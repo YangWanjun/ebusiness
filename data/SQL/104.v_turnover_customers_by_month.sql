@@ -1,6 +1,6 @@
-CREATE OR REPLACE VIEW v_turnover_clients_by_month AS
+CREATE OR REPLACE VIEW v_turnover_customers_by_month AS
 select p.client_id as id
-     , c.name as client_name
+     , c.name as customer_name
      , pr.year
      , pr.month
      , sum(pr.cost) as cost

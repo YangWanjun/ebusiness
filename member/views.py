@@ -126,3 +126,13 @@ class OrganizationListApiView(BaseApiView):
             'count': len(organizations),
             'results': organizations,
         }
+
+
+class OrganizationMemberApiView(BaseApiView):
+
+    def get_context_data(self, **kwargs):
+        members = biz.get_organization_members(kwargs.get('org_id'))
+        return {
+            'count': len(members),
+            'results': members,
+        }

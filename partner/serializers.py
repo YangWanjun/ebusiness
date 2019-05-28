@@ -5,13 +5,27 @@ from utils.rest_base import BaseModelSerializer
 
 
 class PartnerSerializer(BaseModelSerializer):
-    address = serializers.SerializerMethodField(label='所在地')
+    address = serializers.SerializerMethodField(read_only=True, label='住所')
 
     class Meta:
         model = models.Partner
-        fields = ('id', 'name', 'president', 'address', 'address1', 'tel', 'url')
+        fields = '__all__'
 
     def get_address(self, obj):
         return obj.address
 
-    get_address.sort_field = 'address1'
+
+class PartnerMemberSerializer(BaseModelSerializer):
+
+    class Meta:
+        model = models.PartnerMember
+        fields = '__all__'
+
+
+class PartnerPayNotifyRecipientSerializer(BaseModelSerializer):
+    member_name = serializers.CharField(source='member.name', read_only=True, label='名前')
+    email = serializers.CharField(source='member.email', read_only=True, label='メールアドレス')
+
+    class Meta:
+        model = models.PartnerPayNotifyRecipient
+        fields = '__all__'

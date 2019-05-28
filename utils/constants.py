@@ -182,6 +182,13 @@ CHOICE_POSITION = (
     (Decimal('10.0'), "サブリーダー"),
     (Decimal('11.0'), "勤務統計者")
 )
+CHOICE_PARTNER_POSITION = (
+    ('01', "代表取締役社長"),
+    ('02', "取締役"),
+    ('03', "営業"),
+    ('99', "その他"),
+)
+
 
 DICT_MONTH_EN = {
     '01': 'Jan',

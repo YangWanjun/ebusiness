@@ -42,3 +42,9 @@ class PartnerPayNotifyRecipientViewSet(BaseModelViewSet):
     queryset = models.PartnerPayNotifyRecipient.objects.all()
     serializer_class = serializers.PartnerPayNotifyRecipientSerializer
     filter_fields = ('company',)
+
+
+class PartnerMemberChoiceApiView(BaseApiView):
+
+    def get_context_data(self, **kwargs):
+        return biz.get_partner_member_choices(kwargs.get('pk'))

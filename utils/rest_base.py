@@ -217,5 +217,9 @@ def custom_exception_handler(exc, context):
         response.data['status_code'] = response.status_code
     elif isinstance(exc, CustomException):
         response = Response({'detail': exc.message}, status=rest_status.HTTP_400_BAD_REQUEST)
+    elif hasattr(exc, 'args'):
+        code, msg = exc.args
+        if code == 1062:
+            response = Response({'detail': constants.ERROR_DATA_DUPLICATE}, status=rest_status.HTTP_400_BAD_REQUEST)
 
     return response

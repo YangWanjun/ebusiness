@@ -74,6 +74,7 @@ urlpatterns = [
         project_api.ProjectRequestCreateApiView.as_view()),
     url(r'^api/partner-list/$', partner_api.PartnerListApiView.as_view()),
     url(r'^api/partner/(?P<pk>\d+)/employee/$', partner_api.PartnerEmployeeChoiceApiView.as_view()),
+    url(r'^api/partner/(?P<pk>\d+)/members/$', partner_api.PartnerMembersApiView.as_view()),
     url(r'^api/partner/(?P<pk>\d+)/monthly-status/$', partner_api.PartnerMonthlyStatusApiView.as_view()),
     url(r'^api/turnover/monthly/chart$', turnover_api.TurnoverMonthlyChartView.as_view()),
     url(r'^api/turnover/yearly/chart$', turnover_api.TurnoverYearlyChartView.as_view()),

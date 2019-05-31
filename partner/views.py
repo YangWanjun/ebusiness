@@ -64,3 +64,13 @@ class PartnerMonthlyStatusApiView(BaseApiView):
             'count': len(data),
             'results': data,
         }
+
+
+class PartnerMembersApiView(BaseApiView):
+
+    def get_context_data(self, **kwargs):
+        data = biz.get_partner_members(kwargs.get('pk'))
+        return {
+            'count': len(data),
+            'results': data,
+        }

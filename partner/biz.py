@@ -31,3 +31,15 @@ def get_partner_monthly_status(partner_id):
         cursor.callproc('sp_partner_monthly_status', (partner_id,))
         results = common.dictfetchall(cursor)
     return results
+
+
+def get_partner_members(partner_id):
+    """協力会社の作業メンバー一覧を取得
+
+    :param partner_id: 協力会社ID
+    :return:
+    """
+    with connection.cursor() as cursor:
+        cursor.callproc('sp_partner_members', (partner_id,))
+        results = common.dictfetchall(cursor)
+    return results

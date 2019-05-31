@@ -32,9 +32,9 @@ class PartnerListApiView(BaseApiView):
         }
 
 
-class PartnerMemberViewSet(BaseModelViewSet):
-    queryset = models.PartnerMember.objects.all()
-    serializer_class = serializers.PartnerMemberSerializer
+class PartnerEmployeeViewSet(BaseModelViewSet):
+    queryset = models.PartnerEmployee.objects.all()
+    serializer_class = serializers.PartnerEmployeeSerializer
     filter_fields = ('company',)
 
 
@@ -44,7 +44,23 @@ class PartnerPayNotifyRecipientViewSet(BaseModelViewSet):
     filter_fields = ('company',)
 
 
-class PartnerMemberChoiceApiView(BaseApiView):
+class PartnerEmployeeChoiceApiView(BaseApiView):
 
     def get_context_data(self, **kwargs):
-        return biz.get_partner_member_choices(kwargs.get('pk'))
+        return biz.get_partner_employee_choices(kwargs.get('pk'))
+
+
+class PartnerBankAccountViewSet(BaseModelViewSet):
+    queryset = models.PartnerBankAccount.objects.all()
+    serializer_class = serializers.PartnerBankAccountSerializer
+    filter_fields = ('company',)
+
+
+class PartnerMonthlyStatusApiView(BaseApiView):
+
+    def get_context_data(self, **kwargs):
+        data = biz.get_partner_monthly_status(kwargs.get('pk'))
+        return {
+            'count': len(data),
+            'results': data,
+        }

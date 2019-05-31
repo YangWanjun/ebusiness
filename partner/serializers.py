@@ -15,10 +15,10 @@ class PartnerSerializer(BaseModelSerializer):
         return obj.address
 
 
-class PartnerMemberSerializer(BaseModelSerializer):
+class PartnerEmployeeSerializer(BaseModelSerializer):
 
     class Meta:
-        model = models.PartnerMember
+        model = models.PartnerEmployee
         fields = '__all__'
 
 
@@ -28,4 +28,12 @@ class PartnerPayNotifyRecipientSerializer(BaseModelSerializer):
 
     class Meta:
         model = models.PartnerPayNotifyRecipient
+        fields = '__all__'
+
+
+class PartnerBankAccountSerializer(BaseModelSerializer):
+    bank_name = serializers.CharField(source='bank.name', read_only=True, label='銀行名称')
+
+    class Meta:
+        model = models.PartnerBankAccount
         fields = '__all__'

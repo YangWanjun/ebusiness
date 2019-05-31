@@ -9,8 +9,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
 
-from utils import constants, common
-from utils.models import BaseModel, AbstractCompany
+from utils import common
+from utils.models import BaseModel, AbstractCompany, AbstractBankAccount
 
 
 class Company(AbstractCompany):
@@ -74,16 +74,8 @@ class Bank(BaseModel):
 #         return self.branch_name
 
 
-class BankAccount(BaseModel):
+class BankAccount(AbstractBankAccount):
     bank = models.ForeignKey(Bank, verbose_name="銀行", on_delete=models.PROTECT)
-    branch_no = models.CharField(max_length=3, validators=(RegexValidator(regex=r'[0-9]{3}'),), verbose_name="支店番号")
-    branch_name = models.CharField(max_length=20, verbose_name="支店名称")
-    branch_kana = models.CharField(max_length=40, blank=True, null=True, verbose_name="支店カナ",)
-    account_type = models.CharField(max_length=1, choices=constants.CHOICE_BANK_ACCOUNT_TYPE, verbose_name="預金種類")
-    account_number = models.CharField(
-        max_length=7, validators=(RegexValidator(regex=r'[0-9]{7}'),), verbose_name="口座番号"
-    )
-    account_holder = models.CharField(blank=True, null=True, max_length=30, verbose_name="口座名義")
     created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
     updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
     deleted_dt = models.DateTimeField(

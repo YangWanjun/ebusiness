@@ -1,4 +1,3 @@
-import os
 import operator
 import django_filters
 

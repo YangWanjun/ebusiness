@@ -9,6 +9,13 @@ class ProjectStageSerializer(BaseModelSerializer):
         fields = '__all__'
 
 
+class BankSerializer(BaseModelSerializer):
+
+    class Meta:
+        model = models.Bank
+        fields = '__all__'
+
+
 class BankAccountSerializer(BaseModelSerializer):
 
     class Meta:

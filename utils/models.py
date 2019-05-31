@@ -153,3 +153,17 @@ class AbstractMember(BaseModel):
     @property
     def address(self):
         return '{}{}'.format(self.address1 or '', self.address2 or '')
+
+
+class AbstractBankAccount(BaseModel):
+    branch_no = models.CharField(max_length=3, validators=(RegexValidator(regex=r'[0-9]{3}'),), verbose_name="支店番号")
+    branch_name = models.CharField(max_length=20, verbose_name="支店名称")
+    branch_kana = models.CharField(max_length=40, blank=True, null=True, verbose_name="支店カナ",)
+    account_type = models.CharField(max_length=1, choices=constants.CHOICE_BANK_ACCOUNT_TYPE, verbose_name="預金種類")
+    account_number = models.CharField(
+        max_length=7, validators=(RegexValidator(regex=r'[0-9]{7}'),), verbose_name="口座番号"
+    )
+    account_holder = models.CharField(blank=True, null=True, max_length=30, verbose_name="口座名義")
+
+    class Meta:
+        abstract = True

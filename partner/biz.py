@@ -13,8 +13,8 @@ def get_partner_list():
     return results
 
 
-def get_partner_member_choices(partner_id):
-    qs = models.PartnerMember.objects.filter(
+def get_partner_employee_choices(partner_id):
+    qs = models.PartnerEmployee.objects.filter(
         company_id=partner_id,
     ).order_by('name')
     members = []
@@ -24,3 +24,10 @@ def get_partner_member_choices(partner_id):
             'display_name': item.name,
         })
     return members
+
+
+def get_partner_monthly_status(partner_id):
+    with connection.cursor() as cursor:
+        cursor.callproc('sp_partner_monthly_status', (partner_id,))
+        results = common.dictfetchall(cursor)
+    return results

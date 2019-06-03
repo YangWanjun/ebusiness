@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.db import connection
+from django.db.models import Max
 from django.utils import timezone
 
 from . import models, serializers
@@ -144,3 +145,19 @@ def get_organization_members(org_id):
             common.get_choice_name_by_key(constants.CHOICE_POSITION, Decimal(pos)) for pos in positions
         ])
     return results
+
+
+def get_next_bp_employee_id():
+    """自動採番するため、次に使う番号を取得する。
+
+    これは最終的に使う社員番号ではありません。
+    実際の番号は追加後の主キーを使って、設定しなおしてから、もう一回保存する 。
+
+    :return: string
+    """
+    max_id = models.Member.objects.all().aggregate(Max('id'))
+    max_id = max_id.get('id__max', None)
+    if max_id:
+        return 'BP%05d' % (int(max_id) + 1,)
+    else:
+        return ''

@@ -1,6 +1,13 @@
 import django_filters
 
+from django.db import transaction
+
+from rest_framework import status as rest_status
+from rest_framework.response import Response
+
 from . import models, serializers, biz
+from member.biz import get_next_bp_employee_id
+from member.serializers import MemberSerializer, OrganizationPeriodSerializer, SalespersonPeriodSerializer
 from utils.rest_base import BaseModelViewSet, BaseApiView
 
 
@@ -74,3 +81,36 @@ class PartnerMembersApiView(BaseApiView):
             'count': len(data),
             'results': data,
         }
+
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        member_data = request.data.get('member')
+        member_data['employee_id'] = get_next_bp_employee_id()
+        organization_period = request.data.get('organization_period')
+        salesperson_period = request.data.get('salesperson_period')
+        bp_contract_data = request.data.get('bp_contract')
+        member_serializer = MemberSerializer(data=member_data)
+        errors = {}
+        if member_serializer.is_valid():
+            member = member_serializer.save()
+            organization_period['member'] = member.pk
+            salesperson_period['member'] = member.pk
+            bp_contract_data['member'] = member.pk
+            bp_contract_data['company'] = kwargs.get('pk')
+            organization_period_serializer = OrganizationPeriodSerializer(data=organization_period)
+            salesperson_period_serializer = SalespersonPeriodSerializer(data=salesperson_period)
+            bp_contract_serializer = serializers.BpContractSerializer(data=bp_contract_data)
+            if organization_period_serializer.is_valid() \
+                    and salesperson_period_serializer.is_valid() \
+                    and bp_contract_serializer.is_valid():
+                organization_period_serializer.save()
+                salesperson_period_serializer.save()
+                bp_contract_serializer.save()
+                return Response({'pk': member.pk})
+            else:
+                errors['organization_period'] = organization_period_serializer.errors
+                errors['salesperson_period'] = salesperson_period_serializer.errors
+                errors['bp_contract'] = bp_contract_serializer.errors
+        else:
+            errors['member'] = member_serializer.errors
+        return Response(errors, status=rest_status.HTTP_400_BAD_REQUEST)

@@ -37,3 +37,10 @@ class PartnerBankAccountSerializer(BaseModelSerializer):
     class Meta:
         model = models.PartnerBankAccount
         fields = '__all__'
+
+
+class BpContractSerializer(BaseModelSerializer):
+
+    class Meta:
+        model = models.BpContract
+        fields = '__all__'

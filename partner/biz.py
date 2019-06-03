@@ -42,4 +42,9 @@ def get_partner_members(partner_id):
     with connection.cursor() as cursor:
         cursor.callproc('sp_partner_members', (partner_id,))
         results = common.dictfetchall(cursor)
+    for row in results:
+        row['url'] = '/partner/{partner_id}/members/{member_id}'.format(
+            partner_id=partner_id,
+            member_id=row.get('id')
+        )
     return results

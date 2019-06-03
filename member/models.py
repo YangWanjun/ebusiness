@@ -8,6 +8,7 @@ from utils.models import BaseModel, AbstractMember, BaseView
 
 
 class Member(AbstractMember):
+    employee_id = models.CharField(unique=True, max_length=30, verbose_name="社員ID")
     is_unofficial = models.BooleanField(default=False, verbose_name="内定")
     id_number = models.CharField(blank=True, null=True, max_length=20, verbose_name="在留カード番号")
     id_card_expired_date = models.DateField(blank=True, null=True, verbose_name="在留カード期限")

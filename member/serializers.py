@@ -1,3 +1,4 @@
+import datetime
 from decimal import Decimal
 
 from rest_framework import serializers
@@ -84,7 +85,7 @@ class OrganizationPeriodSerializer(BaseModelSerializer):
         if division is None and department is None and section is None:
             raise serializers.ValidationError(constants.ERROR_REQUIRE_FIELD.format(name='所属部署'))
         start_date = attrs.get('start_date')
-        end_date = attrs.get('end_date')
+        end_date = attrs.get('end_date') or datetime.date.max
         if end_date < start_date:
             raise serializers.ValidationError(constants.ERROR_DATE_CONTRADICT.format(start='開始日', end='終了日'))
         return attrs

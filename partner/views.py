@@ -114,3 +114,19 @@ class PartnerMembersApiView(BaseApiView):
         else:
             errors['member'] = member_serializer.errors
         return Response(errors, status=rest_status.HTTP_400_BAD_REQUEST)
+
+
+class BpContractViewSet(BaseModelViewSet):
+    queryset = models.BpContract.objects.all()
+    serializer_class = serializers.BpContractSerializer
+    filter_fields = ('member',)
+
+
+class PartnerMembersOrderStatusApiView(BaseApiView):
+
+    def get_context_data(self, **kwargs):
+        data = biz.get_partner_members_order_status(kwargs.get('pk'))
+        return {
+            'count': len(data),
+            'results': data,
+        }

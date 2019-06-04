@@ -1,4 +1,5 @@
 from django.db import connection
+from django.utils import timezone
 
 from . import models
 from utils import common
@@ -44,6 +45,23 @@ def get_partner_members(partner_id):
         results = common.dictfetchall(cursor)
     for row in results:
         row['url'] = '/partner/{partner_id}/members/{member_id}'.format(
+            partner_id=partner_id,
+            member_id=row.get('id')
+        )
+    return results
+
+
+def get_partner_members_order_status(partner_id):
+    """協力会社社員の注文状況
+
+    :param partner_id:
+    :return:
+    """
+    with connection.cursor() as cursor:
+        cursor.callproc('sp_partner_member_orders', (partner_id, timezone.now().today()))
+        results = common.dictfetchall(cursor)
+    for row in results:
+        row['url'] = '/partner/{partner_id}/members/{member_id}/orders'.format(
             partner_id=partner_id,
             member_id=row.get('id')
         )

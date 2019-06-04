@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
 from . import models
+from member.models import Member
+from utils import constants
 from utils.rest_base import BaseModelSerializer
 
 
@@ -40,7 +42,26 @@ class PartnerBankAccountSerializer(BaseModelSerializer):
 
 
 class BpContractSerializer(BaseModelSerializer):
+    company_name = serializers.CharField(source='company.name', read_only=True, label='会社名')
 
     class Meta:
         model = models.BpContract
         fields = '__all__'
+
+    def validate_start_date(self, value):
+        member = Member.objects.get(pk=self.get_initial()['member'])
+        qs = member.bpcontract_set.filter(start_date__lte=value, end_date__gte=value, is_deleted=False)
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.count() > 0:
+            raise serializers.ValidationError(constants.ERROR_DATE_CONFLICT.format(date=value))
+        return value
+
+    def validate_end_date(self, value):
+        member = Member.objects.get(pk=self.get_initial()['member'])
+        qs = member.bpcontract_set.filter(start_date__lte=value, end_date__gte=value, is_deleted=False)
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.count() > 0:
+            raise serializers.ValidationError(constants.ERROR_DATE_CONFLICT.format(date=value))
+        return value

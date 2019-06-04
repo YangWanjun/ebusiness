@@ -90,7 +90,7 @@ class CustomerOrderSerializer(BaseModelSerializer):
     def validate_start_date(self, value):
         projects = models.Project.objects.filter(pk__in=self.get_initial()['projects'])
         for project in projects:
-            qs = project.customerorder_set.filter(start_date__lte=value, end_date__gte=value)
+            qs = project.customerorder_set.filter(start_date__lte=value, end_date__gte=value, is_deleted=False)
             if self.instance and self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
             if qs.count() > 0:
@@ -100,7 +100,7 @@ class CustomerOrderSerializer(BaseModelSerializer):
     def validate_end_date(self, value):
         projects = models.Project.objects.filter(pk__in=self.get_initial()['projects'])
         for project in projects:
-            qs = project.customerorder_set.filter(start_date__lte=value, end_date__gte=value)
+            qs = project.customerorder_set.filter(start_date__lte=value, end_date__gte=value, is_deleted=False)
             if self.instance and self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
             if qs.count() > 0:

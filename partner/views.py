@@ -130,3 +130,13 @@ class PartnerMembersOrderStatusApiView(BaseApiView):
             'count': len(data),
             'results': data,
         }
+
+
+class PartnerMemberOrdersApiView(BaseApiView):
+
+    def get_context_data(self, **kwargs):
+        data = biz.get_partner_member_orders(kwargs.get('member_id'))
+        return {
+            'count': len(data),
+            'results': data,
+        }

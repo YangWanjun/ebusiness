@@ -205,3 +205,23 @@ def get_choice_name_by_key(choices, key):
                 if k == key:
                     return v
     return ''
+
+
+def get_year_month_list(start_date, end_date, is_reverse=False):
+    """開始日から終了日までの年月リストを取得する
+
+    :param start_date: 開始日
+    :param end_date: 終了日
+    :param is_reverse: 降順
+    :return:
+    """
+    if is_reverse:
+        temp_date = end_date
+        while start_date.strftime('%Y%m') <= temp_date.strftime('%Y%m'):
+            yield temp_date.strftime('%Y'), temp_date.strftime('%m')
+            temp_date = add_months(temp_date, -1)
+    else:
+        temp_date = start_date
+        while temp_date.strftime('%Y%m') <= end_date.strftime('%Y%m'):
+            yield temp_date.strftime('%Y'), temp_date.strftime('%m')
+            temp_date = add_months(temp_date)

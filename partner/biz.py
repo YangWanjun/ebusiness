@@ -66,3 +66,57 @@ def get_partner_members_order_status(partner_id):
             member_id=row.get('id')
         )
     return results
+
+
+def get_partner_member_orders(member_id):
+    """協力社員の注文書を取得する
+
+    :param member_id:
+    :return:
+    """
+    member = models.Member.objects.get(pk=member_id)
+    qs_project_members = member.projectmember_set.all().order_by('-start_date', '-end_date')
+    results = []
+    for project_member in qs_project_members:
+        results.append({
+            'id': project_member.pk,
+            'name': project_member.project.name,
+            'business_days': None,
+            'order_no': '{}～{}'.format(project_member.start_date, project_member.end_date),
+            'order_file': None,
+            'order_request_file': None,
+            'is_sent': None,
+            'parent': None,
+        })
+        orders = []
+        for order in project_member.bpmemberorder_set.filter(is_deleted=False):
+            orders.append({
+                'id': '{}_{}{}'.format(project_member.pk, order.year, order.month),
+                'name': '{}年{}月'.format(order.year, order.month),
+                'year': order.year,
+                'month': order.month,
+                'end_year': order.end_year,
+                'end_month': order.end_month,
+                'business_days': None,
+                'order_no': order.order_no,
+                'order_file': order.filename,
+                'order_request_file': order.filename_request,
+                'is_sent': order.is_sent,
+                'parent': project_member.pk,
+            })
+        for year, month in common.get_year_month_list(project_member.start_date, project_member.end_date, True):
+            tmp_ls = list(filter(
+                lambda i: (i['year'] + i['month']) <= (year + month) <= (i['end_year'] + i['end_month']),
+                orders
+            ))
+            if tmp_ls:
+                results.extend(tmp_ls)
+            else:
+                results.append({
+                    'id': '{}_{}{}'.format(project_member.pk, year, month),
+                    'name': '{}年{}月'.format(year, month),
+                    'year': year,
+                    'month': month,
+                    'parent': project_member.pk,
+                })
+    return results

@@ -1,6 +1,7 @@
 import django_filters
 
 from django.db import transaction
+from django.template.loader import render_to_string
 
 from rest_framework import status as rest_status
 from rest_framework.response import Response
@@ -8,7 +9,7 @@ from rest_framework.response import Response
 from . import models, serializers, biz
 from member.biz import get_next_bp_employee_id
 from member.serializers import MemberSerializer, OrganizationPeriodSerializer, SalespersonPeriodSerializer
-from utils.rest_base import BaseModelViewSet, BaseApiView
+from utils.rest_base import BaseModelViewSet, BaseApiView, BaseReadOnlyModelViewSet
 
 
 class PartnerFilter(django_filters.FilterSet):
@@ -140,3 +141,22 @@ class PartnerMemberOrdersApiView(BaseApiView):
             'count': len(data),
             'results': data,
         }
+
+
+class BpMemberOrderViewSet(BaseReadOnlyModelViewSet):
+    queryset = models.BpMemberOrder.objects.all()
+    serializer_class = serializers.BpMemberOrderSerializer
+
+
+class MemberOrderDetailApiView(BaseApiView):
+    template_name = 'partner/member_order.html'
+
+    def get_context_data(self, **kwargs):
+        order = models.BpMemberOrder.objects.get(pk=kwargs.get('pk'))
+        heading = order.bpmemberorderheading
+        data = {
+            'order': order,
+            'heading': heading,
+        }
+        html = render_to_string(self.template_name, {'data': data})
+        return {'html': html}

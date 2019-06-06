@@ -91,7 +91,7 @@ def get_partner_member_orders(member_id):
         orders = []
         for order in project_member.bpmemberorder_set.filter(is_deleted=False):
             orders.append({
-                'id': '{}_{}{}'.format(project_member.pk, order.year, order.month),
+                'id': order.pk,
                 'name': '{}年{}月'.format(order.year, order.month),
                 'year': order.year,
                 'month': order.month,
@@ -101,6 +101,11 @@ def get_partner_member_orders(member_id):
                 'order_no': order.order_no,
                 'order_file': order.filename,
                 'order_request_file': order.filename_request,
+                'order_url': '/partner/{partner_id}/members/{member_id}/orders/{order_id}'.format(
+                    partner_id=90,
+                    member_id=member_id,
+                    order_id=order.pk
+                ),
                 'is_sent': order.is_sent,
                 'parent': project_member.pk,
             })
@@ -117,6 +122,8 @@ def get_partner_member_orders(member_id):
                     'name': '{}年{}月'.format(year, month),
                     'year': year,
                     'month': month,
+                    'end_year': year,
+                    'end_month': month,
                     'parent': project_member.pk,
                 })
     return results

@@ -65,3 +65,10 @@ class BpContractSerializer(BaseModelSerializer):
         if qs.count() > 0:
             raise serializers.ValidationError(constants.ERROR_DATE_CONFLICT.format(date=value))
         return value
+
+
+class BpMemberOrderSerializer(BaseModelSerializer):
+
+    class Meta:
+        model = models.BpMemberOrder
+        fields = '__all__'

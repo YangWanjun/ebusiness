@@ -1,5 +1,11 @@
+import os
 import xlsxwriter
+import pdfkit
+import traceback
 from io import BytesIO
+from utils import common
+
+logger = common.get_system_logger()
 
 
 def generate_request(data, request_no):
@@ -261,3 +267,38 @@ def generate_request(data, request_no):
         sheet.set_row(i, 15.5)
     book.close()
     return output
+
+
+def generate_pdf_from_string(html, out_path, config=None):
+    try:
+        # config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe')
+        # パスに日本語があったら、エラーになる。暫定対策：英語にしてから、また日本語名に変更する。
+        options = {
+            'encoding': "UTF-8",
+            'page-size': 'A4',
+            'dpi': 300,
+        }
+        if config and isinstance(config, dict):
+            options.update(config)
+        # css = ['']
+        pdfkit.from_string(html, out_path, options=options)
+    except Exception as ex:
+        logger.error(str(ex))
+        logger.error(traceback.format_exc())
+
+
+def generate_report_pdf_binary(html, config=None):
+    temp_file = common.get_temp_file('pdf')
+    header_html = config and config.get('header-html', None)
+    try:
+        generate_pdf_from_string(html, temp_file, config)
+        data = open(temp_file, 'rb').read()
+        return BytesIO(data)
+    except Exception as ex:
+        logger.error(ex)
+        logger.error(traceback.format_exc())
+    finally:
+        if os.path.exists(temp_file):
+            os.remove(temp_file)
+        if header_html and os.path.exists(header_html):
+            os.remove(header_html)

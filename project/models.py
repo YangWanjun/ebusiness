@@ -160,6 +160,10 @@ class Project(BaseModel):
     def __str__(self):
         return self.name
 
+    @property
+    def address(self):
+        return self.address1
+
     def get_project_request(self, year, month, customer_order):
         """請求番号を取得する。
 

@@ -1,12 +1,17 @@
 import datetime
+import math
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import RegexValidator
-from django.db import models
+from django.db import models, transaction
+from django.db.models import Max
+from django.db.models.functions import Concat
 from django.contrib.auth.models import User
+from django.contrib.humanize.templatetags import humanize
 
 from master.models import Bank
 from member.models import Member
-from utils import constants
+from utils import constants, common
 from utils.models import AbstractCompany, AbstractMember, BaseModel, AbstractBankAccount
 
 
@@ -167,15 +172,113 @@ class BpContract(BaseModel):
         verbose_name = "ＢＰ契約"
         verbose_name_plural = "ＢＰ契約一覧"
 
+    def get_cost(self):
+        """コストを取得する
+
+        :return:
+        """
+        if self.is_hourly_pay:
+            cost = self.allowance_base
+        else:
+            cost = self.allowance_base + self.allowance_other
+        return cost
+
+    def get_allowance_time_min(self, year, month):
+        if self.is_hourly_pay or self.is_fixed_cost:
+            return 0
+        elif self.calculate_type == '01':
+            return 160
+        elif self.calculate_type == '02':
+            return len(common.get_business_days(year, month)) * 8
+        elif self.calculate_type == '03':
+            return len(common.get_business_days(year, month)) * 7.9
+        elif self.calculate_type == '04':
+            return len(common.get_business_days(year, month)) * 7.75
+        else:
+            return self.allowance_time_min
+
+    def get_allowance_time_memo(self, year, month):
+        allowance_time_min = self.get_allowance_time_min(year, month)
+        float_part, int_part = math.modf(self.allowance_time_max)
+        if float_part == 0.0:
+            allowance_time_max = int(int_part)
+        else:
+            allowance_time_max = self.allowance_time_max
+        if self.is_hourly_pay or self.is_fixed_cost:
+            allowance_time_memo = ''
+        elif self.calculate_type in ('01', '02', '03', '04'):
+            allowance_time_memo = "※基準時間：%s～%sh/月" % (allowance_time_min, allowance_time_max)
+        else:
+            if self.allowance_time_memo:
+                allowance_time_memo = self.allowance_time_memo
+            else:
+                allowance_time_memo = "※基準時間：%s～%sh/月" % (allowance_time_min, allowance_time_max)
+        # 営業日数 × ８または営業日数 × ７.９の説明
+        if self.calculate_type in ('02', '03', '04'):
+            hours = 8
+            if self.calculate_type == '02':
+                hours = 8
+            elif self.calculate_type == '03':
+                hours = 7.9
+            elif self.calculate_type == '04':
+                hours = 7.75
+            allowance_time_memo += "   （%s＝%s月の営業日数(%s)×%s）" % (
+                allowance_time_min, month, len(common.get_business_days(year, month)), hours
+            )
+        return allowance_time_memo
+
+    def get_allowance_absenteeism(self, year, month):
+        if self.is_hourly_pay or self.is_fixed_cost:
+            allowance_absenteeism = 0
+        elif self.calculate_type in ('01', '02', '03', '04'):
+            allowance_time_min = self.get_allowance_time_min(year, month)
+            allowance_absenteeism = int(int(self.allowance_base) / allowance_time_min)
+            allowance_absenteeism -= allowance_absenteeism % 10
+        else:
+            allowance_absenteeism = self.allowance_absenteeism
+        return allowance_absenteeism
+
+    def get_allowance_absenteeism_memo(self, year, month):
+        if self.is_hourly_pay or self.is_fixed_cost:
+            allowance_absenteeism_memo = ''
+        elif self.calculate_type == '01':
+            allowance_absenteeism_memo = self.allowance_absenteeism_memo
+        elif self.calculate_type in ('02', '03', '04'):
+            allowance_time_min = self.get_allowance_time_min(year, month)
+            allowance_absenteeism = self.get_allowance_absenteeism(year, month)
+            if self.is_show_formula:
+                allowance_absenteeism_memo = "不足単価：￥%s/%sh=￥%s/h" % (
+                    humanize.intcomma(self.allowance_base),
+                    allowance_time_min,
+                    humanize.intcomma(allowance_absenteeism)
+                )
+            else:
+                allowance_absenteeism_memo = "不足単価：￥%s/h" % humanize.intcomma(allowance_absenteeism)
+        else:
+            allowance_absenteeism_memo = self.allowance_absenteeism_memo
+        return allowance_absenteeism_memo
+
+    def get_calculate_type_comment(self):
+        if self.calculate_type in ('02', '03'):
+            return "精算方式：変動基準時間方式"
+        else:
+            return ""
+
+    def get_allowance_other_memo(self):
+        return "{}：￥{}円".format(
+            self.allowance_other_memo, humanize.intcomma(self.allowance_other)
+        ) if self.allowance_other else ""
+
 
 class BpMemberOrder(BaseModel):
     project_member = models.ForeignKey('project.ProjectMember', on_delete=models.PROTECT, verbose_name="案件メンバー")
-    member = models.ForeignKey(Partner, db_column='subcontractor_id', on_delete=models.PROTECT, verbose_name="協力会社")
+    partner = models.ForeignKey(Partner, db_column='subcontractor_id', on_delete=models.PROTECT, verbose_name="協力会社")
     order_no = models.CharField(max_length=14, unique=True, verbose_name="注文番号")
     year = models.CharField(max_length=4, validators=(RegexValidator(regex='^20[0-9]{2}$'),), verbose_name="開始年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_MONTH_LIST, verbose_name="開始月")
     end_year = models.CharField(max_length=4, validators=(RegexValidator(regex='^20[0-9]{2}$'),), verbose_name="終了年")
     end_month = models.CharField(max_length=2, choices=constants.CHOICE_MONTH_LIST, verbose_name="終了月")
+    business_days = models.IntegerField(default=0, verbose_name="営業日数")
     filename = models.CharField(max_length=255, blank=True, null=True, verbose_name="注文書ファイル名")
     filename_request = models.CharField(max_length=255, blank=True, null=True, verbose_name="注文請書")
     is_sent = models.BooleanField(default=False, verbose_name="送信")
@@ -201,6 +304,83 @@ class BpMemberOrder(BaseModel):
         verbose_name = "ＢＰ註文書"
         verbose_name_plural = "ＢＰ註文書一覧"
 
+    @classmethod
+    def get_next_bp_order(
+            cls, partner, project_member, year, month,
+            publish_date=None, end_year=None, end_month=None, salesperson=None
+    ):
+        """指定メンバー、年月によって、注文情報を取得する。
+
+        :param partner:
+        :param project_member:
+        :param year:
+        :param month:
+        :param publish_date:
+        :param end_year:
+        :param end_month:
+        :param salesperson: ＢＰメンバーの営業員
+        :return:
+        """
+        try:
+            order = cls.objects.annotate(
+                ym_start=Concat('year', 'month', output_field=models.CharField()),
+                ym_end=Concat('end_year', 'end_month', output_field=models.CharField()),
+            ).get(
+                project_member=project_member,
+                ym_start__lte='%04d%02d' % (int(year), int(month)),
+                ym_end__gte='%04d%02d' % (int(year), int(month)),
+            )
+        except ObjectDoesNotExist:
+            if not end_year or not end_month:
+                end_year = year
+                end_month = month
+            order = cls(
+                project_member=project_member,
+                partner=partner,
+                order_no=cls.get_next_order_no(salesperson, publish_date),
+                year=year,
+                month="%02d" % int(month),
+                end_year='%04d' % int(end_year),
+                end_month='%02d' % int(end_month)
+            )
+        return order
+
+    @classmethod
+    def get_next_order_no(cls, salesperson, publish_date):
+        """注文番号を取得する。
+
+        :param salesperson ＢＰメンバーの営業員
+        :param publish_date:
+        """
+        prefix = '-'
+        if salesperson and salesperson.first_name_en:
+            prefix = salesperson.first_name_en[0].upper()
+
+        order_no = "EB{0:04d}{1:02d}{2:02d}{3}".format(
+            publish_date.year, publish_date.month, publish_date.day, prefix
+        )
+        max_order_no = cls.objects.filter(order_no__startswith=order_no).aggregate(Max('order_no'))
+        max_order_no = max_order_no.get('order_no__max')
+        if max_order_no:
+            index = int(max_order_no[-2:]) + 1
+        else:
+            index = 1
+        return "{0}{1:02d}".format(order_no, index)
+
+    @transaction.atomic
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None, other_data=None):
+        super(BpMemberOrder, self).save(force_insert, force_update, using, update_fields)
+        if other_data:
+            data = other_data.get('heading')
+            # 既存のデータを全部消す。
+            if hasattr(self, "bpmemberorderheading"):
+                self.bpmemberorderheading.delete(using)
+            BpMemberOrderHeading.objects.create(
+                order=self,
+                **data
+            )
+
 
 class BpMemberOrderHeading(BaseModel):
     order = models.OneToOneField(BpMemberOrder, db_column='bp_order_id', on_delete=models.PROTECT, verbose_name="ＢＰ注文書")
@@ -223,10 +403,10 @@ class BpMemberOrderHeading(BaseModel):
     partner_fax = models.CharField(
         max_length=15, blank=True, null=True, db_column='subcontractor_fax', verbose_name="協力会社ファックス"
     )
-    company_address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name="本社住所１")
-    company_address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name="本社住所２")
     company_name = models.CharField(blank=True, null=True, max_length=30, verbose_name="会社名")
     company_tel = models.CharField(blank=True, null=True, max_length=15, verbose_name="お客様電話番号")
+    company_address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name="本社住所１")
+    company_address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name="本社住所２")
     project_name = models.CharField(blank=True, null=True, max_length=50, verbose_name="業務名称")
     start_date = models.CharField(blank=True, null=True, max_length=20, verbose_name="作業開始日")
     end_date = models.CharField(blank=True, null=True, max_length=20, verbose_name="作業終了日")

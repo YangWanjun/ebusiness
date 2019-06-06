@@ -241,13 +241,25 @@ DICT_PROJECT_MEMBER_STATUS_CLASS = {
     '2': 'green',  # 作業確定
 }
 
+CONFIG_GROUP_BP_ORDER = 'bp_order'
+CONFIG_BP_ORDER_DELIVERY_PROPERTIES = 'delivery_properties'
+CONFIG_BP_ORDER_PAYMENT_CONDITION = 'payment_condition'
+CONFIG_BP_ORDER_CONTRACT_ITEMS = 'contract_items'
+
 ERROR_DELETE_PROTECTED = '関連付けの {name} が存在しますので、削除できません。'
 ERROR_DATE_CONFLICT = '日付 {date} が重複しています。'
 ERROR_DATE_CONTRADICT = '{start} と {end} の期間が不正です。'
+ERROR_DATE_FINISHED_MONTH = "終了年月「{year}年{month}月」は不正です、開始年月以降に選択してください。"
+ERROR_NO_SALESPERSON = '{name}の営業員は設定されていません。'
 ERROR_NOT_IMPLEMENTED = '未実装です。'
 ERROR_NO_ATTENDANCE = '{name} の出勤情報がありません。'
+ERROR_NO_PARTNER_CONTRACT = '{name}は{company}の契約がありません。'
+ERROR_MULTI_PARTNER_CONTRACT = '{name}は{company}の契約が複数あります。'
+ERROR_MULTI_SALESPERSON = '{name}の営業員は複数います。'
 ERROR_UNKNOWN_ATTACHMENT = '識別できないファイルです。'
 ERROR_FILE_NOT_FOUND = 'ファイルは見つかりません。'
 ERROR_REQUIRE_FIELD = '{name} は必須項目です。'
 ERROR_ORGANIZATION_POSITION = '{org_type} の場合 {value} は選択できません。'
 ERROR_DATA_DUPLICATE = 'データは重複しています。'
+
+LABEL_BP_ORDER_DEFAULT_LOCATION = "弊社指定場所"

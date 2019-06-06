@@ -9,7 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
 
-from utils import common
+from utils import common, constants
 from utils.models import BaseModel, AbstractCompany, AbstractBankAccount
 
 
@@ -128,6 +128,11 @@ class ExpensesCategory(BaseModel):
 class Holiday(BaseModel):
     date = models.DateField(unique=True, verbose_name="日付")
     comment = models.CharField(max_length=100, verbose_name="説明")
+    created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
+    deleted_dt = models.DateTimeField(
+        blank=True, null=True, editable=False, db_column='deleted_date', verbose_name="更新日時"
+    )
 
     class Meta:
         managed = False
@@ -180,3 +185,60 @@ class Attachment(BaseModel):
         if os.path.exists(self.path.path):
             os.remove(self.path.path)
         super(Attachment, self).delete(using, keep_parents)
+
+
+class Config(models.Model):
+    group = models.CharField(max_length=50, blank=False, null=True, verbose_name="グループ")
+    name = models.CharField(max_length=50, unique=True, verbose_name="設定名")
+    value = models.CharField(max_length=2000, verbose_name="設定値")
+    description = models.TextField(blank=True, null=True, verbose_name="説明")
+
+    class Meta:
+        db_table = 'mst_config'
+        default_permissions = ('change',)
+        ordering = ['group', 'name']
+        verbose_name = verbose_name_plural = "システム設定"
+
+    @classmethod
+    def get(cls, config_name, default_value=None, group_name=None):
+        """システム設定を取得する。
+
+        DBから値を取得する。
+
+        :param config_name: 設定名
+        :param default_value: デフォルト値
+        :param group_name: グループ名
+        :return:
+        """
+        try:
+            c = cls.objects.get(name=config_name)
+            return c.value
+        except ObjectDoesNotExist:
+            if default_value is not None:
+                c = cls(group=group_name, name=config_name, value=default_value)
+                c.save()
+            return default_value
+
+    @classmethod
+    def get_bp_order_delivery_properties(cls):
+        """ＢＰ注文書の納入物件
+
+        :return:
+        """
+        return cls.get(constants.CONFIG_BP_ORDER_DELIVERY_PROPERTIES, '', group_name=constants.CONFIG_GROUP_BP_ORDER)
+
+    @classmethod
+    def get_bp_order_payment_condition(cls):
+        """ＢＰ注文書の支払条件
+
+        :return:
+        """
+        return cls.get(constants.CONFIG_BP_ORDER_PAYMENT_CONDITION, '', group_name=constants.CONFIG_GROUP_BP_ORDER)
+
+    @classmethod
+    def get_bp_order_contract_items(cls):
+        """ＢＰ注文書の契約条項
+
+        :return:
+        """
+        return cls.get(constants.CONFIG_BP_ORDER_CONTRACT_ITEMS, '', group_name=constants.CONFIG_GROUP_BP_ORDER)

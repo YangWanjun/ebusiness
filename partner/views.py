@@ -1,3 +1,4 @@
+import datetime
 import django_filters
 
 from django.db import transaction
@@ -7,8 +8,11 @@ from rest_framework import status as rest_status
 from rest_framework.response import Response
 
 from . import models, serializers, biz
-from member.biz import get_next_bp_employee_id
+from master.models import Company, Attachment
+from member.biz import get_next_bp_employee_id, get_member_salesperson_by_month
 from member.serializers import MemberSerializer, OrganizationPeriodSerializer, SalespersonPeriodSerializer
+from project.models import ProjectMember
+from utils import file_gen, common
 from utils.rest_base import BaseModelViewSet, BaseApiView, BaseReadOnlyModelViewSet
 
 
@@ -160,3 +164,49 @@ class MemberOrderDetailApiView(BaseApiView):
         }
         html = render_to_string(self.template_name, {'data': data})
         return {'html': html}
+
+
+class BpMemberOrderCreateApiView(BaseApiView):
+
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        company = Company.objects.first()
+        partner = models.Partner.objects.get(pk=kwargs.get('pk'))
+        project_member = ProjectMember.objects.get(pk=kwargs.get('project_member_id'))
+        year = request.data.get('year')
+        month = request.data.get('month')
+        first_day = common.get_first_day_from_ym(year + month)
+        last_day = common.get_last_day_by_month(first_day)
+        end_date = last_day if last_day <= project_member.end_date else project_member.end_date
+        publish_date = datetime.datetime.strptime(request.data.get('publish_date'), '%Y-%m-%d')
+        end_year = request.data.get('end_year')
+        end_month = request.data.get('end_month')
+        salesperson = get_member_salesperson_by_month(project_member.member, end_date)
+        order = models.BpMemberOrder.get_next_bp_order(
+            partner, project_member, year, month, publish_date, end_year, end_month, salesperson
+        )
+        order_data = biz.generate_partner_order_data(
+            company, partner, project_member,
+            order.order_no,
+            year,
+            month,
+            publish_date,
+            end_year,
+            end_month,
+        )
+        if not order.pk:
+            order.created_user = request.user
+        order.updated_user = request.user
+        order.save(other_data=order_data)
+        filename, filename_request = common.get_order_file_path(order.order_no, project_member.member.full_name)
+        html = render_to_string('partner/member_order.html', {'data': order_data})
+        byte_file = file_gen.generate_report_pdf_binary(html)
+        attachment = Attachment.save_from_bytes(
+            order,
+            byte_file,
+            filename,
+            existed_file=order.filename
+        )
+        order.filename = attachment.uuid
+        order.save(update_fields=('filename',))
+        return Response(serializers.BpMemberOrderDisplaySerializer(order).data)

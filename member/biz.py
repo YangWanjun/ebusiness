@@ -1,11 +1,13 @@
 from decimal import Decimal
 
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db import connection
-from django.db.models import Max
+from django.db.models import Max, Q
 from django.utils import timezone
 
 from . import models, serializers
 from utils import common, constants
+from utils.errors import CustomException
 
 
 def get_me(user):
@@ -161,3 +163,22 @@ def get_next_bp_employee_id():
         return 'BP%05d' % (int(max_id) + 1,)
     else:
         return ''
+
+
+def get_member_salesperson_by_month(member, date):
+    """社員の営業員を取得する
+
+    :param member:
+    :param date:
+    :return:
+    """
+    try:
+        return models.SalespersonPeriod.objects.get(
+            Q(end_date__gte=date) | Q(end_date__isnull=True),
+            start_date__lte=date,
+            member=member,
+        ).salesperson
+    except ObjectDoesNotExist:
+        raise CustomException(constants.ERROR_NO_SALESPERSON.format(name=member))
+    except MultipleObjectsReturned:
+        raise CustomException(constants.ERROR_MULTI_SALESPERSON.format(name=member))

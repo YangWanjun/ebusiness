@@ -82,6 +82,8 @@ urlpatterns = [
     url(r'^api/partner/(?P<pk>\d+)/members/(?P<member_id>\d+)/orders/$',
         partner_api.PartnerMemberOrdersApiView.as_view()),
     url(r'^api/partner/member/order/(?P<pk>\d+)/$', partner_api.MemberOrderDetailApiView.as_view()),
+    url(r'^api/partner/(?P<pk>\d+)/members/(?P<project_member_id>\d+)/orders/create/$',
+        partner_api.BpMemberOrderCreateApiView.as_view()),
     url(r'^api/turnover/monthly/chart$', turnover_api.TurnoverMonthlyChartView.as_view()),
     url(r'^api/turnover/yearly/chart$', turnover_api.TurnoverYearlyChartView.as_view()),
     url(r'^api/turnover/division/monthly/chart$', turnover_api.TurnoverMonthlyByDivisionChartView.as_view()),

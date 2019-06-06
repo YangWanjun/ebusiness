@@ -5,9 +5,12 @@ import datetime
 import math
 import pytz
 import logging
+import random
 from urllib.parse import urlparse
 
-from . import jholiday, constants
+from django.conf import settings
+
+from . import jholiday
 
 
 def get_tz_utc():
@@ -20,6 +23,33 @@ def get_system_logger():
     :return:
     """
     return logging.getLogger('system')
+
+
+def get_temp_path():
+    """一時フォルダーを取得する。
+
+    :return:
+    """
+    path = os.path.join(settings.MEDIA_ROOT, 'temp')
+    if not os.path.exists(path):
+        os.mkdir(path)
+    return path
+
+
+def get_temp_file(ext):
+    """指定拡張子の一時ファイルを取得する。
+
+    :param ext: 拡張子にdotが必要ない（例：「.pdf」の場合「pdf」を渡してください）
+    :return:
+    """
+    temp_root = get_temp_path()
+    file_name = "{0}_{1}.{2}".format(
+        datetime.datetime.now().strftime('%Y%m%d%H%M%S%f'),
+        random.randint(10000, 99999),
+        ext
+    )
+    temp_file = os.path.join(temp_root, file_name)
+    return temp_file
 
 
 def dictfetchall(cursor):
@@ -145,7 +175,7 @@ def get_integer(value, decimal_type):
 def get_business_days(year, month, exclude=None):
     from master.models import Holiday
     business_days = []
-    eb_holidays = [holiday.date for holiday in Holiday.objects.public_all()]
+    eb_holidays = [holiday.date for holiday in Holiday.objects.all()]
     for i in range(1, 32):
         try:
             this_date = datetime.date(int(year), int(month), i)
@@ -172,17 +202,33 @@ def get_request_filename(request_no, request_name, ext='.xlsx'):
     now = datetime.datetime.now()
     filename = "EB請求書_{request_no}_{name}_{timestamp}".format(
         request_no=request_no,
-        name=request_name,
+        name=escape_filename(request_name),
         timestamp=now.strftime("%Y%m%d_%H%M%S%f")
     )
     return filename + ext
 
 
-# def escape_filename(filename):
-#     if filename:
-#         return re.sub(r'[<>:"/\|?*]', '', filename)
-#     else:
-#         return filename
+def get_order_file_path(order_no, member_name):
+    """協力会社の注文書のパスを取得する。
+
+    :param order_no:
+    :param member_name:
+    :return:
+    """
+    now = datetime.datetime.now()
+    filename = "%s_%s_%s.pdf" % (
+        order_no,
+        escape_filename(member_name),
+        now.strftime("%H%M%S%f")
+    )
+    return 'EB注文書_' + filename, 'EB注文請書_' + filename
+
+
+def escape_filename(filename):
+    if filename:
+        return re.sub(r'[<>:"/\|?*]', '', filename)
+    else:
+        return filename
 
 
 def get_attachment_path(self, filename):

@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'django_filters',
     'partner.apps.PartnerConfig',
     'project.apps.ProjectConfig',
+    'mail.apps.MailConfig',
     'master.apps.MasterConfig',
     'member.apps.MemberConfig',
     'turnover.apps.TurnoverConfig',

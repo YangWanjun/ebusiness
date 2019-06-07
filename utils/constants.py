@@ -5,6 +5,12 @@ REG_TEL = REG_FAX = r'^\d+[0-9-]+\d+$'
 REG_POST_CODE = r"\d{3}[-]?\d{4}"
 REG_PHONE = r'\d{3}[-]?\d{4}[-]?\d{4}'
 
+MIME_TYPE_EXCEL = 'application/excel'
+MIME_TYPE_PDF = 'application/pdf'
+MIME_TYPE_ZIP = 'application/zip'
+MIME_TYPE_HTML = 'text/html'
+MIME_TYPE_STREAM = 'application/octet-stream'
+
 CHOICE_ORG_TYPE = (
     ('01', "事業部"),
     ('02', "部署"),
@@ -213,6 +219,9 @@ CHOICE_CONTRACT_STATUS = (
     ('04', "廃棄"),
     ('05', "自動更新")
 )
+CHOICE_MAIL_GROUP = (
+    ('0400', '注文書と注文請書の送付'),
+)
 
 
 DICT_MONTH_EN = {
@@ -241,6 +250,11 @@ DICT_PROJECT_MEMBER_STATUS_CLASS = {
     '2': 'green',  # 作業確定
 }
 
+CONFIG_GROUP_EMAIL = 'email'
+CONFIG_EMAIL_ADDRESS = 'admin_email_address'
+CONFIG_EMAIL_SMTP_HOST = 'admin_email_smtp_host'
+CONFIG_EMAIL_SMTP_PORT = 'admin_email_smtp_port'
+CONFIG_EMAIL_PASSWORD = 'admin_email_password'
 CONFIG_GROUP_BP_ORDER = 'bp_order'
 CONFIG_BP_ORDER_DELIVERY_PROPERTIES = 'delivery_properties'
 CONFIG_BP_ORDER_PAYMENT_CONDITION = 'payment_condition'
@@ -261,5 +275,7 @@ ERROR_FILE_NOT_FOUND = 'ファイルは見つかりません。'
 ERROR_REQUIRE_FIELD = '{name} は必須項目です。'
 ERROR_ORGANIZATION_POSITION = '{org_type} の場合 {value} は選択できません。'
 ERROR_DATA_DUPLICATE = 'データは重複しています。'
+ERROR_MAIL_GROUP_NOT_FOUND = 'メールグループ {name} は設定されていません。'
+ERROR_MAIL_GROUP_MULTI_FOUND = 'メールグループ {name} は複数設定されています。'
 
 LABEL_BP_ORDER_DEFAULT_LOCATION = "弊社指定場所"

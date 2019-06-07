@@ -22,6 +22,14 @@ class Company(AbstractCompany):
         default_permissions = ()
         verbose_name = verbose_name_plural = "自社情報"
 
+    @classmethod
+    def get_company(cls):
+        """自社情報を取得する。
+
+        :return:
+        """
+        return cls.objects.first()
+
 
 class Bank(BaseModel):
     code = models.CharField(
@@ -184,7 +192,7 @@ class Attachment(BaseModel):
     def delete(self, using=None, keep_parents=False):
         if os.path.exists(self.path.path):
             os.remove(self.path.path)
-        super(Attachment, self).delete(using, keep_parents)
+        super(BaseModel, self).delete(using, keep_parents)
 
 
 class Config(models.Model):

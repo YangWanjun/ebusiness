@@ -19,6 +19,7 @@ from django.contrib import admin
 from rest_framework import routers
 from rest_framework_jwt.views import obtain_jwt_token
 
+from mail import views as mail_api
 from master import views as master_api
 from member import views as member_api
 from partner import views as partner_api
@@ -52,6 +53,7 @@ router.register(r'turnover/monthly', turnover_api.TurnoverMonthlyViewSet)
 router.register(r'turnover/customers_by_month', turnover_api.TurnoverCustomersByMonthViewSet)
 router.register(r'turnover/project', turnover_api.TurnoverProjectViewSet)
 router.register(r'turnover/member', turnover_api.TurnoverMemberViewSet)
+router.register(r'mail', mail_api.MailGroupViewSet)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),

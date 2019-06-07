@@ -1,6 +1,8 @@
 import datetime
 import math
 
+from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import RegexValidator
 from django.db import models, transaction
@@ -9,7 +11,8 @@ from django.db.models.functions import Concat
 from django.contrib.auth.models import User
 from django.contrib.humanize.templatetags import humanize
 
-from master.models import Bank
+from mail.models import MailGroup
+from master.models import Bank, Attachment
 from member.models import Member
 from utils import constants, common
 from utils.models import AbstractCompany, AbstractMember, BaseModel, AbstractBankAccount
@@ -39,6 +42,23 @@ class Partner(AbstractCompany):
         default_permissions = ()
         verbose_name = "協力会社"
         verbose_name_plural = '協力会社一覧'
+
+    def __str__(self):
+        return self.name
+
+    def get_pay_notify_recipient_list(self):
+        """支払通知書と請求書をメール送信時、の宛先リストとＣＣリストを取得する。
+
+        :return:
+        """
+        queryset = self.partnerpaynotifyrecipient_set.filter(is_deleted=False, member__email__isnull=False)
+        recipient_list = []
+        cc_list = []
+        for request_recipient in queryset.filter(is_cc=False):
+            recipient_list.append(request_recipient.member.email)
+        for request_cc in queryset.filter(is_cc=True):
+            cc_list.append(request_cc.member.email)
+        return recipient_list, cc_list
 
 
 class PartnerEmployee(BaseModel):
@@ -295,6 +315,7 @@ class BpMemberOrder(BaseModel):
     deleted_dt = models.DateTimeField(
         blank=True, null=True, editable=False, db_column='deleted_date', verbose_name="更新日時"
     )
+    attachments = GenericRelation(Attachment, related_query_name='partner_order_set')
 
     class Meta:
         managed = False
@@ -366,6 +387,55 @@ class BpMemberOrder(BaseModel):
         else:
             index = 1
         return "{0}{1:02d}".format(order_no, index)
+
+    def get_mail_data(self):
+        group = MailGroup.get_partner_order_group()
+        recipient_list, cc_list = self.partner.get_pay_notify_recipient_list()
+        cc_list.extend(group.get_cc_list())
+        bcc_list = group.get_bcc_list()
+        attachment_list_choices = [{
+            'value': item.uuid,
+            'display_name': item.name,
+        } for item in self.attachments.filter(is_deleted=False)]
+        mail_data = group.get_mail_data({
+            'recipient': recipient_list,
+            'cc_list': cc_list,
+            'bcc_list': bcc_list,
+            'attachment_list': [self.filename, self.filename_request],
+            'subcontractor': self.partner,
+            'deadline': self.get_deadline(),
+            'month': self.month,
+            'is_encrypt': True,
+        })
+        mail_data['attachment_list_choices'] = attachment_list_choices
+        mail_data['content_type'] = ContentType.objects.get_for_model(self).pk
+        mail_data['object_id'] = self.pk
+        return mail_data
+
+    def mail_sent_callback(self):
+        """メール送信完了後のコールバック関数
+
+        :return:
+        """
+        self.is_sent = True
+        self.save(update_fields=('is_sent',))
+        from .serializers import BpMemberOrderDisplaySerializer
+        return BpMemberOrderDisplaySerializer(self).data
+
+    def get_deadline(self):
+        """支払通知書とＢＰ注文書をメール送信時の支払締切日を取得する
+
+        来月の第六営業日
+
+        :return:
+        """
+        date = common.get_first_day_from_ym(self.year + self.month)
+        next_month = common.add_months(date, 1)
+        business_days = common.get_business_days(next_month.year, next_month.month)
+        if len(business_days) > 5:
+            return business_days[5]
+        else:
+            return next_month
 
     @transaction.atomic
     def save(self, force_insert=False, force_update=False, using=None,

@@ -6,6 +6,7 @@ import math
 import pytz
 import logging
 import random
+import string
 from urllib.parse import urlparse
 
 from django.conf import settings
@@ -199,11 +200,9 @@ def get_request_filename(request_no, request_name, ext='.xlsx'):
     :return:
     """
 
-    now = datetime.datetime.now()
-    filename = "EB請求書_{request_no}_{name}_{timestamp}".format(
+    filename = "EB請求書_{request_no}_{name}".format(
         request_no=request_no,
         name=escape_filename(request_name),
-        timestamp=now.strftime("%Y%m%d_%H%M%S%f")
     )
     return filename + ext
 
@@ -215,11 +214,9 @@ def get_order_file_path(order_no, member_name):
     :param member_name:
     :return:
     """
-    now = datetime.datetime.now()
-    filename = "%s_%s_%s.pdf" % (
+    filename = "%s_%s.pdf" % (
         order_no,
         escape_filename(member_name),
-        now.strftime("%H%M%S%f")
     )
     return 'EB注文書_' + filename, 'EB注文請書_' + filename
 
@@ -271,3 +268,32 @@ def get_year_month_list(start_date, end_date, is_reverse=False):
         while temp_date.strftime('%Y%m') <= end_date.strftime('%Y%m'):
             yield temp_date.strftime('%Y'), temp_date.strftime('%m')
             temp_date = add_months(temp_date)
+
+
+def join_html(html1, html2):
+    """二つのＨＴＭＬを１つに結合する
+
+    :param html1:
+    :param html2:
+    :return:
+    """
+    # 二つ目のHTML中で、<body></body>中身の内容を取り出す。
+    pattern = re.compile('<body[^<>]*>(.+)</body>', re.MULTILINE | re.DOTALL)
+    m = pattern.search(html2)
+    if m:
+        html2 = m.groups()[0]
+    end_body_index = html1.rfind('</body>')
+    if end_body_index > 0:
+        return html1[:end_body_index] + html2 + '</body></html>'
+    else:
+        return html1 + html2
+
+
+def generate_password(length=8):
+    """パスワードを作成
+    英文字と数字の組み合わせ
+
+    :param length: パスワードの長さ
+    :return:
+    """
+    return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(length))

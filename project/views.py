@@ -245,7 +245,7 @@ class ProjectRequestCreateApiView(BaseApiView):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
-        company = Company.objects.first()
+        company = Company.get_company()
         project = get_object_or_404(models.Project, pk=kwargs.get('project_id'))
         customer_order = get_object_or_404(models.CustomerOrder, pk=kwargs.get('order_id'))
         year = kwargs.get('year')

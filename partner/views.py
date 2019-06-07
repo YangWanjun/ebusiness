@@ -5,6 +5,7 @@ from django.db import transaction
 from django.template.loader import render_to_string
 
 from rest_framework import status as rest_status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from . import models, serializers, biz
@@ -152,6 +153,11 @@ class BpMemberOrderViewSet(BaseReadOnlyModelViewSet):
     queryset = models.BpMemberOrder.objects.all()
     serializer_class = serializers.BpMemberOrderSerializer
 
+    @action(methods=['get'], detail=True)
+    def mail(self, *args, **kwargs):
+        mail_data = self.get_object().get_mail_data()
+        return Response(mail_data)
+
 
 class MemberOrderDetailApiView(BaseApiView):
 
@@ -172,7 +178,7 @@ class BpMemberOrderCreateApiView(BaseApiView):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
-        company = Company.objects.first()
+        company = Company.get_company()
         partner = models.Partner.objects.get(pk=kwargs.get('pk'))
         project_member = ProjectMember.objects.get(pk=kwargs.get('project_member_id'))
         year = request.data.get('year')

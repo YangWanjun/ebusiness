@@ -108,3 +108,13 @@ class BpMemberOrderDisplaySerializer(BaseModelSerializer):
 
     def get_parent(self, obj):
         return obj.project_member.pk
+
+
+class BpLumpContractSerializer(BaseModelSerializer):
+    company_name = serializers.CharField(source='company.name', read_only=True, label='会社名')
+    project_name = serializers.CharField(source='project.name', read_only=True, label='関連案件')
+    salesperson_name = serializers.CharField(source='project.salesperson.full_name', read_only=True, label='営業員')
+
+    class Meta:
+        model = models.BpLumpContract
+        fields = '__all__'

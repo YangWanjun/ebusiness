@@ -242,3 +242,19 @@ class PreviewPdfView(BaseTemplateViewWithoutLogin):
             'heading': heading,
         }
         return {'data': data}
+
+
+class BpLumpContractViewSet(BaseModelViewSet):
+    queryset = models.BpLumpContract.objects.filter(is_deleted=False)
+    serializer_class = serializers.BpLumpContractSerializer
+    filter_fields = ('company',)
+
+
+class PartnerLumpContractApiView(BaseApiView):
+
+    def get_context_data(self, pk, **kwargs):
+        data = biz.get_partner_lump_contracts(pk)
+        return {
+            'count': len(data),
+            'results': data,
+        }

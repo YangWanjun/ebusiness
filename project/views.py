@@ -209,7 +209,17 @@ class SearchProjectView(BaseApiView):
                 "type": "string",
                 "label": "所属部署",
                 "visible": True,
-            }
+            },
+            {
+                "name": "start_date",
+                "type": "date",
+                "label": "開始日",
+            },
+            {
+                "name": "end_date",
+                "type": "date",
+                "label": "終了日",
+            },
         ]
 
     def get_context_data(self, **kwargs):

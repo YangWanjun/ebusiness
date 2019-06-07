@@ -225,3 +225,15 @@ def get_partner_member_contract(partner, member, year=None, month=None):
         raise CustomException(constants.ERROR_NO_PARTNER_CONTRACT.format(name=member, company=partner))
     except MultipleObjectsReturned:
         raise CustomException(constants.ERROR_MULTI_PARTNER_CONTRACT.format(name=member, company=partner))
+
+
+def get_partner_lump_contracts(partner_id):
+    with connection.cursor() as cursor:
+        cursor.callproc('sp_partner_lump_orders', (partner_id,))
+        results = common.dictfetchall(cursor)
+    for row in results:
+        row['order_url'] = '/partner/{partner_id}/order/{order_id}'.format(
+            partner_id=partner_id,
+            order_id=row['order_id']
+        )
+    return results

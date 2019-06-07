@@ -10,7 +10,7 @@ from django.db.models import Max, Sum
 from django.utils import timezone
 
 from master.models import ProjectStage, BankAccount, ExpensesCategory
-from member.models import Member, Organization
+from member.models import Member, Organization, Salesperson
 from partner.models import Partner
 from utils import constants, common
 from utils.errors import CustomException
@@ -138,6 +138,7 @@ class Project(BaseModel):
         CustomerMember, blank=True, null=True, db_column='middleman_id', on_delete=models.PROTECT,
         related_name="contact_set", verbose_name="案件連絡者"
     )
+    salesperson = models.ForeignKey(Salesperson, blank=True, null=True, on_delete=models.PROTECT, verbose_name=u"営業員")
     organization = models.ForeignKey(
         Organization, blank=True, null=True, db_column='department_id', verbose_name="所属部署", on_delete=models.PROTECT,
     )

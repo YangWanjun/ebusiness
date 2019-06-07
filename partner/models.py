@@ -290,6 +290,53 @@ class BpContract(BaseModel):
         ) if self.allowance_other else ""
 
 
+class BpLumpContract(BaseModel):
+    company = models.ForeignKey(Partner, on_delete=models.PROTECT, verbose_name="雇用会社")
+    project = models.ForeignKey(
+        'project.Project', blank=False, null=True, on_delete=models.PROTECT, verbose_name="関連案件"
+    )
+    contract_type = models.CharField(max_length=2, default='04', editable=False, verbose_name="契約形態")
+    start_date = models.DateField(verbose_name="契約開始日")
+    end_date = models.DateField(verbose_name="契約終了日")
+    delivery_date = models.DateField(blank=False, null=True, verbose_name="納品日")
+    is_hourly_pay = models.BooleanField(default=False, editable=False, verbose_name="時給")
+    allowance_base = models.IntegerField(verbose_name="契約金額")
+    allowance_base_tax = models.IntegerField(default=0, verbose_name="消費税")
+    allowance_base_total = models.IntegerField(default=0, verbose_name="合計額")
+    allowance_time_min = models.DecimalField(
+        default=160, max_digits=5, decimal_places=2, verbose_name="時間下限",
+        editable=False, help_text="足りないなら欠勤となる"
+    )
+    allowance_time_max = models.DecimalField(
+        default=200, max_digits=5, decimal_places=2, verbose_name="時間上限",
+        editable=False, help_text="超えたら残業となる"
+    )
+    project_content = models.CharField(max_length=200, blank=True, null=True, verbose_name="作業内容")
+    workload = models.CharField(max_length=200, blank=True, null=True, verbose_name="作業量")
+    project_result = models.CharField(max_length=200, blank=True, null=True, verbose_name="納入成果品")
+    status = models.CharField(
+        max_length=2, default='01', choices=constants.CHOICE_CONTRACT_STATUS,
+        verbose_name="契約状態"
+    )
+    comment = models.CharField(max_length=255, blank=True, null=True, verbose_name="備考")
+    created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
+    deleted_dt = models.DateTimeField(
+        blank=True, null=True, editable=False, db_column='deleted_date', verbose_name="更新日時"
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'eb_bp_lump_contract'
+        default_permissions = ()
+        ordering = ('company', '-start_date')
+        verbose_name = "ＢＰ一括契約"
+        verbose_name_plural = "ＢＰ一括契約一覧"
+
+    def __str__(self):
+        return self.project.name
+
+
 class BpMemberOrder(BaseModel):
     project_member = models.ForeignKey('project.ProjectMember', on_delete=models.PROTECT, verbose_name="案件メンバー")
     partner = models.ForeignKey(Partner, db_column='subcontractor_id', on_delete=models.PROTECT, verbose_name="協力会社")

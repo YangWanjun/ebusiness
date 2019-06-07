@@ -41,6 +41,7 @@ router.register(r'partner-employee', partner_api.PartnerEmployeeViewSet)
 router.register(r'partner-pay-notify-recipient', partner_api.PartnerPayNotifyRecipientViewSet)
 router.register(r'partner-bank-account', partner_api.PartnerBankAccountViewSet)
 router.register(r'partner-contracts', partner_api.BpContractViewSet)
+router.register(r'partner-lump-contract', partner_api.BpLumpContractViewSet)
 router.register(r'partner-member-order', partner_api.BpMemberOrderViewSet)
 router.register(r'customer', project_api.CustomerViewSet)
 router.register(r'customer-member', project_api.CustomerMemberViewSet)
@@ -86,6 +87,7 @@ urlpatterns = [
     url(r'^api/partner/member/order/(?P<pk>\d+)/$', partner_api.MemberOrderDetailApiView.as_view()),
     url(r'^api/partner/(?P<pk>\d+)/members/(?P<project_member_id>\d+)/orders/create/$',
         partner_api.BpMemberOrderCreateApiView.as_view()),
+    url(r'^api/partner/(?P<pk>\d+)/lump-contract/', partner_api.PartnerLumpContractApiView.as_view()),
     url(r'^api/turnover/monthly/chart$', turnover_api.TurnoverMonthlyChartView.as_view()),
     url(r'^api/turnover/yearly/chart$', turnover_api.TurnoverYearlyChartView.as_view()),
     url(r'^api/turnover/division/monthly/chart$', turnover_api.TurnoverMonthlyByDivisionChartView.as_view()),

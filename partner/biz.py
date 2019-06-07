@@ -1,3 +1,5 @@
+import datetime
+
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.contrib.humanize.templatetags import humanize
 from django.db import connection
@@ -150,7 +152,8 @@ def generate_partner_order_heading(
     end_date = last_day if last_day <= project_member.end_date else project_member.end_date
     salesperson = get_member_salesperson_by_month(member, end_date)
     data = dict()
-    data['publish_date'] = publish_date
+    data['publish_date'] = publish_date.strftime('%Y-%m-%d') \
+        if isinstance(publish_date, (datetime.date, datetime.datetime)) else publish_date
     data['partner_name'] = partner.name
     data['partner_post_code'] = partner.post_code
     data['partner_address1'] = partner.address1

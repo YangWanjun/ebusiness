@@ -89,5 +89,5 @@ urlpatterns = [
     url(r'^api/turnover/division/monthly/chart$', turnover_api.TurnoverMonthlyByDivisionChartView.as_view()),
     url(r'^api/attachment/download/(?P<uuid>[^/]+)$', master_api.FileDownloadApiView.as_view()),
 
-    # url(r'^master/', include('master.urls')),
+    url(r'^partner/', include('partner.urls')),
 ]

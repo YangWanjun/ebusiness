@@ -13,6 +13,7 @@ from member.biz import get_next_bp_employee_id, get_member_salesperson_by_month
 from member.serializers import MemberSerializer, OrganizationPeriodSerializer, SalespersonPeriodSerializer
 from project.models import ProjectMember
 from utils import file_gen, common
+from utils.django_base import BaseTemplateViewWithoutLogin
 from utils.rest_base import BaseModelViewSet, BaseApiView, BaseReadOnlyModelViewSet
 
 
@@ -153,7 +154,6 @@ class BpMemberOrderViewSet(BaseReadOnlyModelViewSet):
 
 
 class MemberOrderDetailApiView(BaseApiView):
-    template_name = 'partner/member_order.html'
 
     def get_context_data(self, **kwargs):
         order = models.BpMemberOrder.objects.get(pk=kwargs.get('pk'))
@@ -162,8 +162,10 @@ class MemberOrderDetailApiView(BaseApiView):
             'order': order,
             'heading': heading,
         }
-        html = render_to_string(self.template_name, {'data': data})
-        return {'html': html}
+        return {'html': [
+            render_to_string('partner/member_order.html', {'data': data}),
+            render_to_string('partner/member_order_request.html', {'data': data})
+        ]}
 
 
 class BpMemberOrderCreateApiView(BaseApiView):
@@ -199,6 +201,7 @@ class BpMemberOrderCreateApiView(BaseApiView):
         order.updated_user = request.user
         order.save(other_data=order_data)
         filename, filename_request = common.get_order_file_path(order.order_no, project_member.member.full_name)
+        # 注文書
         html = render_to_string('partner/member_order.html', {'data': order_data})
         byte_file = file_gen.generate_report_pdf_binary(html)
         attachment = Attachment.save_from_bytes(
@@ -208,5 +211,28 @@ class BpMemberOrderCreateApiView(BaseApiView):
             existed_file=order.filename
         )
         order.filename = attachment.uuid
-        order.save(update_fields=('filename',))
+        # 注文請書
+        html = render_to_string('partner/member_order_request.html', {'data': order_data})
+        byte_file = file_gen.generate_report_pdf_binary(html)
+        attachment = Attachment.save_from_bytes(
+            order,
+            byte_file,
+            filename_request,
+            existed_file=order.filename_request
+        )
+        order.filename_request = attachment.uuid
+        order.save(update_fields=('filename', 'filename_request'))
         return Response(serializers.BpMemberOrderDisplaySerializer(order).data)
+
+
+class PreviewPdfView(BaseTemplateViewWithoutLogin):
+    template_name = 'partner/member_order_request.html'
+
+    def get_context_data(self, **kwargs):
+        order = models.BpMemberOrder.objects.get(pk=4446)
+        heading = order.bpmemberorderheading
+        data = {
+            'order': order,
+            'heading': heading,
+        }
+        return {'data': data}

@@ -46,7 +46,7 @@ select m.id
                                           and concat(next_bp_order.year, next_bp_order.month) = next_ym
  where s.is_deleted = 0
    and s.id = in_partner_id
- group by m.id, m.first_name, m.last_name
+ group by m.id, m.first_name, m.last_name, curr_p.id, curr_p.name, curr_bp_order.id, next_bp_order.id
  order by max(c.end_date) desc, concat(m.first_name, ' ', m.last_name) asc
 ;
 

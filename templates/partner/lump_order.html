@@ -1,0 +1,176 @@
+{% extends 'common/base_pdf.html' %}
+{% load humanize %}
+
+{% block styles %}
+div.container>table>tbody>tr>td {
+    padding: 5px 10px;
+}
+{% endblock styles %}
+
+{% block content %}
+    <table class="request" cellpadding="0" cellspacing="0" style="width: 948px;">
+        <tr>
+            <td colspan="9" style="text-align: right;">
+                <u>注文番号：
+                    {{ data.order.order_no }}
+                </u>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="9" style="text-align: right;">
+                <u>
+                    {{ data.heading.publish_date }}
+                </u>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="9" class="center" style="font-size: 24px;">
+                <b>注&nbsp;&nbsp;文&nbsp;&nbsp;書</b>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="9">
+                （乙）
+            </td>
+        </tr>
+        <tr>
+            <td colspan="9">
+                <u>
+                    {{ data.heading.partner_name }}
+                    &nbsp;&nbsp;
+                </u>
+                御中
+            </td>
+        </tr>
+        <tr>
+            <td colspan="5"></td>
+            <td colspan="4">
+                （甲）
+            </td>
+        </tr>
+        <tr>
+            <td colspan="5"></td>
+            <td colspan="4">
+                {{ data.heading.company_name }}
+            </td>
+        </tr>
+        <tr>
+            <td colspan="5"></td>
+            <td colspan="4">
+                {{ data.heading.company_address1 }}
+            </td>
+        </tr>
+        <tr>
+            <td colspan="5"></td>
+            <td colspan="4">
+                {{ data.heading.company_address2 }}
+            </td>
+        </tr>
+        <tr>
+            <td colspan="5"></td>
+            <td colspan="4">
+                TEL:{{ data.heading.company_tel }}
+                &nbsp;&nbsp;
+                FAX:{{ data.heading.company_fax|default:'' }}
+            </td>
+        </tr>
+        <tr><td colspan="9">&nbsp;</td></tr>
+        <!--<tr>-->
+            <!--<td colspan="6">&nbsp;</td>-->
+            <!--<td>作成者</td>-->
+            <!--<td colspan="2"></td>-->
+        <!--</tr>-->
+        <!--<tr>-->
+            <!--<td colspan="6">&nbsp;</td>-->
+            <!--<td class="left top border_right"></td>-->
+            <!--<td colspan="2"></td>-->
+        <!--</tr>-->
+        <!--<tr>-->
+            <!--<td colspan="6">&nbsp;</td>-->
+            <!--<td class="left border_right"></td>-->
+            <!--<td colspan="2"></td>-->
+        <!--</tr>-->
+        <!--<tr>-->
+            <!--<td colspan="6">&nbsp;</td>-->
+            <!--<td class="left bottom border_right"></td>-->
+            <!--<td colspan="2"></td>-->
+        <!--</tr>-->
+        <tr><td colspan="9">&nbsp;</td></tr>
+        <tr>
+            <td colspan="9">下記の通り注文致しますので、ご了承の上、折り返し注文請書をご送付下さい。</td>
+        </tr>
+        <tr><td colspan="9">&nbsp;</td></tr>
+        <tr>
+            <td colspan="2" class="center left top">件名</td>
+            <td colspan="7" class="left top border_right">
+                {{ data.heading.project_name }}
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" class="center left top">契約金額</td>
+            <td colspan="7" class="left top border_right">
+                {{ data.heading.allowance_base }}
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" class="center left top">消費税</td>
+            <td colspan="7" class="left top border_right">
+                {{ data.heading.allowance_base_tax }}
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" class="center left top">合計額</td>
+            <td colspan="7" class="left top border_right">
+                {{ data.heading.allowance_base_total }}
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" class="center left top">作業期間及び納期</td>
+            <td colspan="7" class="left top border_right">
+                {{ data.heading.start_date }} ～ {{ data.heading.end_date }}
+                    （納期：{{ data.heading.delivery_date }}）
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" class="center left top">作業内容</td>
+            <td colspan="7" class="left top border_right">
+                {{ data.heading.project_content|default:'' }}
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" class="center left top">作業量</td>
+            <td colspan="7" class="left top border_right">
+                {{ data.heading.workload|default:'' }}
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" class="center left top">納入成果品</td>
+            <td colspan="7" class="left top border_right">
+                {{ data.heading.project_result|default:'' }}
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" class="center left top">主管部署</td>
+            <td class="left top">住所</td>
+            <td colspan="6" class="left top border_right">
+                {{ data.heading.company_address1 }}{{ data.heading.company_address2 }}
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" class="center left top">及び納入場所</td>
+            <td class="left top">部署</td>
+            <td colspan="6" class="left top border_right">
+                {{ data.heading.company_name }}
+            </td>
+        </tr>
+        <tr><td colspan="9" class="top" style="padding: 2px 0px;">&nbsp;</td></tr>
+        <tr><td colspan="9" class="top left border_right center" style="padding: 2px 0px; border-bottom: 3px black double;">備考</td></tr>
+        <tr>
+            <td colspan="9" class="left border_right bottom">
+                <pre style="min-height: 170px; white-space: inherit;">{{ data.heading.comment|default:'' }}</pre>
+            </td>
+        </tr>
+        <tr><td colspan="9">&nbsp;</td></tr>
+        <tr><td colspan="9">&nbsp;</td></tr>
+    </table>
+{% endblock %}

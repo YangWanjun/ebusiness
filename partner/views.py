@@ -13,8 +13,9 @@ from master.models import Company, Attachment
 from member.biz import get_next_bp_employee_id, get_member_salesperson_by_month
 from member.serializers import MemberSerializer, OrganizationPeriodSerializer, SalespersonPeriodSerializer
 from project.models import ProjectMember
-from utils import file_gen, common
+from utils import file_gen, common, constants
 from utils.django_base import BaseTemplateViewWithoutLogin
+from utils.errors import CustomException
 from utils.rest_base import BaseModelViewSet, BaseApiView, BaseReadOnlyModelViewSet
 
 
@@ -159,18 +160,31 @@ class BpMemberOrderViewSet(BaseReadOnlyModelViewSet):
         return Response(mail_data)
 
 
-class MemberOrderDetailApiView(BaseApiView):
+class PartnerOrderDetailApiView(BaseApiView):
 
     def get_context_data(self, **kwargs):
-        order = models.BpMemberOrder.objects.get(pk=kwargs.get('pk'))
-        heading = order.bpmemberorderheading
+        category = kwargs.get('category')
+        if category == 'member':
+            # メンバー契約
+            order = models.BpMemberOrder.objects.get(pk=kwargs.get('pk'))
+            heading = order.bpmemberorderheading
+            template_name1 = 'partner/member_order.html'
+            template_name2 = 'partner/member_order_request.html'
+        elif category == 'lump':
+            # 一括契約
+            order = models.BpLumpOrder.objects.get(pk=kwargs.get('pk'))
+            heading = order.bplumporderheading
+            template_name1 = 'partner/lump_order.html'
+            template_name2 = 'partner/lump_order_request.html'
+        else:
+            raise CustomException(constants.ERROR_UNKNOWN_CATEGORY)
         data = {
             'order': order,
             'heading': heading,
         }
         return {'html': [
-            render_to_string('partner/member_order.html', {'data': data}),
-            render_to_string('partner/member_order_request.html', {'data': data})
+            render_to_string(template_name1, {'data': data}),
+            render_to_string(template_name2, {'data': data})
         ]}
 
 
@@ -232,11 +246,11 @@ class BpMemberOrderCreateApiView(BaseApiView):
 
 
 class PreviewPdfView(BaseTemplateViewWithoutLogin):
-    template_name = 'partner/member_order_request.html'
+    template_name = 'partner/lump_order.html'
 
     def get_context_data(self, **kwargs):
-        order = models.BpMemberOrder.objects.get(pk=4446)
-        heading = order.bpmemberorderheading
+        order = models.BpLumpOrder.objects.get(pk=9)
+        heading = order.bplumporderheading
         data = {
             'order': order,
             'heading': heading,

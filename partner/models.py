@@ -566,3 +566,84 @@ class BpMemberOrderHeading(BaseModel):
 
     def delete(self, using=None, keep_parents=False):
         return super(BaseModel, self).delete(using, keep_parents)
+
+
+class BpLumpOrder(BaseModel):
+    partner = models.ForeignKey(Partner, db_column='subcontractor_id', on_delete=models.PROTECT, verbose_name="協力会社")
+    contract = models.OneToOneField(BpLumpContract, on_delete=models.PROTECT, verbose_name="契約")
+    order_no = models.CharField(max_length=14, unique=True, verbose_name="注文番号")
+    year = models.CharField(max_length=4, validators=(RegexValidator(regex='^20[0-9]{2}$'),), verbose_name="対象年")
+    month = models.CharField(max_length=2, choices=constants.CHOICE_MONTH_LIST, verbose_name="対象月")
+    amount = models.IntegerField(default=0, verbose_name="契約金額")
+    tax_amount = models.IntegerField(default=0, verbose_name="消費税")
+    total_amount = models.IntegerField(default=0, verbose_name="合計額")
+    filename = models.CharField(max_length=255, blank=True, null=True, verbose_name="注文書ファイル名")
+    filename_request = models.CharField(max_length=255, blank=True, null=True, verbose_name="注文請書")
+    is_sent = models.BooleanField(default=False, verbose_name="送信")
+    created_user = models.ForeignKey(
+        User, related_name='created_lump_orders', null=True, on_delete=models.PROTECT,
+        editable=False, verbose_name="作成者"
+    )
+    updated_user = models.ForeignKey(
+        User, related_name='updated_lump_orders', null=True, on_delete=models.PROTECT,
+        editable=False, verbose_name="更新者"
+    )
+    created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
+    deleted_dt = models.DateTimeField(
+        blank=True, null=True, editable=False, db_column='deleted_date', verbose_name="更新日時"
+    )
+    attachments = GenericRelation(Attachment, related_query_name='partner_lump_order_set')
+
+    class Meta:
+        managed = False
+        db_table = 'eb_bplumporder'
+        default_permissions = ()
+        verbose_name = "ＢＰ一括註文書"
+        verbose_name_plural = "ＢＰ一括註文書一覧"
+
+
+class BpLumpOrderHeading(models.Model):
+    order = models.OneToOneField(BpLumpOrder, db_column='bp_order_id', on_delete=models.PROTECT, verbose_name="ＢＰ注文書")
+    publish_date = models.CharField(max_length=200, verbose_name="発行年月日")
+    partner_name = models.CharField(
+        max_length=50, blank=True, null=True, db_column='subcontractor_name', verbose_name="下請け会社名"
+    )
+    partner_post_code = models.CharField(
+        max_length=8, blank=True, null=True, db_column='subcontractor_post_code', verbose_name="協力会社郵便番号"
+    )
+    partner_address1 = models.CharField(
+        max_length=200, blank=True, null=True, db_column='subcontractor_address1', verbose_name="協力会社住所１"
+    )
+    partner_address2 = models.CharField(
+        max_length=200, blank=True, null=True, db_column='subcontractor_address2', verbose_name="協力会社住所２"
+    )
+    partner_tel = models.CharField(
+        max_length=15, blank=True, null=True, db_column='subcontractor_tel', verbose_name="協力会社電話番号"
+    )
+    partner_fax = models.CharField(
+        max_length=15, blank=True, null=True, db_column='subcontractor_fax', verbose_name="協力会社ファックス"
+    )
+    company_address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name="本社住所１")
+    company_address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name="本社住所２")
+    company_name = models.CharField(blank=True, null=True, max_length=30, verbose_name="会社名")
+    company_tel = models.CharField(blank=True, null=True, max_length=15, verbose_name="会社電話番号")
+    company_fax = models.CharField(blank=True, null=True, max_length=15, verbose_name="会社ファックス")
+    project_name = models.CharField(blank=True, null=True, max_length=50, verbose_name="業務名称")
+    start_date = models.CharField(blank=True, null=True, max_length=20, verbose_name="作業開始日")
+    end_date = models.CharField(blank=True, null=True, max_length=20, verbose_name="作業終了日")
+    delivery_date = models.CharField(blank=True, null=True, max_length=20, verbose_name="納品日")
+    project_content = models.CharField(max_length=200, blank=True, null=True, verbose_name="作業内容")
+    workload = models.CharField(max_length=200, blank=True, null=True, verbose_name="作業量")
+    project_result = models.CharField(max_length=200, blank=True, null=True, verbose_name="納入成果品")
+    allowance_base = models.CharField(blank=True, null=True, max_length=20, verbose_name="契約金額")
+    allowance_base_tax = models.CharField(blank=True, null=True, max_length=20, verbose_name="消費税")
+    allowance_base_total = models.CharField(blank=True, null=True, max_length=20, verbose_name="合計額")
+    comment = models.TextField(blank=True, null=True, verbose_name="備考")
+
+    class Meta:
+        managed = False
+        db_table = 'eb_bplumporderheading'
+        default_permissions = ()
+        verbose_name = "ＢＰ一括註文書見出し"
+        verbose_name_plural = "ＢＰ一括註文書見出し一覧"

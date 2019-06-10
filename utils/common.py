@@ -7,6 +7,7 @@ import pytz
 import logging
 import random
 import string
+import base64
 from urllib.parse import urlparse
 
 from django.conf import settings
@@ -297,3 +298,8 @@ def generate_password(length=8):
     :return:
     """
     return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(length))
+
+
+def get_signature():
+    path = os.path.join(settings.BASE_DIR, 'static/img/signature.png')
+    return 'data:image/png;base64,' + base64.b64encode(open(path, 'rb').read()).decode('utf-8')

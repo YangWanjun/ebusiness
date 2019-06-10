@@ -11,32 +11,35 @@ div.container>table>tbody>tr>td {
     <table class="request" cellpadding="0" cellspacing="0" style="width: 948px;">
         <tr>
             <td colspan="9" style="text-align: right;">
-                <u>注文番号：
+                <div style="border-bottom: 1px solid black; display: inline-block; width: 180px;">
+                    注文番号：
                     {{ data.order.order_no }}
-                </u>
+                </div>
             </td>
         </tr>
         <tr>
             <td colspan="9" style="text-align: right;">
-                <u>
-                    {{ data.heading.publish_date }}
-                </u>
+                <div style="border-bottom: 1px solid black; display: inline-block; width: 180px;">
+                    <span style="display: inline-block; width: 70px; ">年</span>
+                    <span style="display: inline-block; width: 50px; ">月</span>
+                    <span style="display: inline-block; width: 50px; ">日</span>
+                </div>
             </td>
         </tr>
         <tr>
             <td colspan="9" class="center" style="font-size: 24px;">
-                <b>注&nbsp;&nbsp;文&nbsp;&nbsp;書</b>
+                <b>注&nbsp;&nbsp;文&nbsp;&nbsp;請&nbsp;&nbsp;書</b>
             </td>
         </tr>
         <tr>
             <td colspan="9">
-                （乙）
+                （発注者）
             </td>
         </tr>
         <tr>
             <td colspan="9">
                 <u>
-                    {{ data.heading.partner_name }}
+                    {{ data.heading.company_name}}
                     &nbsp;&nbsp;
                 </u>
                 御中
@@ -45,33 +48,33 @@ div.container>table>tbody>tr>td {
         <tr>
             <td colspan="5"></td>
             <td colspan="4">
-                （甲）
+                （受注者）
             </td>
         </tr>
         <tr>
             <td colspan="5"></td>
             <td colspan="4">
-                {{ data.heading.company_name }}
+                {{ data.heading.partner_name  }}&nbsp;&nbsp;&nbsp;㊞
             </td>
         </tr>
         <tr>
             <td colspan="5"></td>
             <td colspan="4">
-                {{ data.heading.company_address1 }}
+                {{ data.heading.partner_address1 }}
             </td>
         </tr>
         <tr>
             <td colspan="5"></td>
             <td colspan="4">
-                {{ data.heading.company_address2 }}
+                {{ data.heading.partner_address2 }}
             </td>
         </tr>
         <tr>
             <td colspan="5"></td>
             <td colspan="4">
-                TEL:{{ data.heading.company_tel }}
+                TEL:{{ data.heading.partner_tel }}
                 &nbsp;&nbsp;
-                FAX:{{ data.heading.company_fax|default:'' }}
+                FAX:{{ data.heading.partner_fax|default:'' }}
             </td>
         </tr>
         <tr><td colspan="9">&nbsp;</td></tr>
@@ -95,11 +98,12 @@ div.container>table>tbody>tr>td {
             <!--<td class="left bottom border_right"></td>-->
             <!--<td colspan="2"></td>-->
         <!--</tr>-->
+        <tr><td colspan="9">別紙、注文書No.:（{{ data.order.order_no }}）に基づき、下記の通りお請け致します。</td></tr>
         <tr><td colspan="9">&nbsp;</td></tr>
         <tr>
-            <td colspan="9">下記の通り注文致しますので、ご了承の上、折り返し注文請書をご送付下さい。</td>
+            <td colspan="2">承諾日</td>
+            <td colspan="7">{{ data.heading.publish_date }}</td>
         </tr>
-        <tr><td colspan="9">&nbsp;</td></tr>
         <tr>
             <td colspan="2" class="center left top">件名</td>
             <td colspan="7" class="left top border_right">

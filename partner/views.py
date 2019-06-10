@@ -3,6 +3,7 @@ import django_filters
 
 from django.db import transaction
 from django.template.loader import render_to_string
+from django.utils import timezone
 
 from rest_framework import status as rest_status
 from rest_framework.decorators import action
@@ -181,6 +182,7 @@ class PartnerOrderDetailApiView(BaseApiView):
         data = {
             'order': order,
             'heading': heading,
+            'signature': common.get_signature(),
         }
         return {'html': [
             render_to_string(template_name1, {'data': data}),
@@ -188,7 +190,80 @@ class PartnerOrderDetailApiView(BaseApiView):
         ]}
 
 
-class BpMemberOrderCreateApiView(BaseApiView):
+class PartnerOrderCreateMixin(object):
+
+    def get_order_data(self, **kwargs):
+        return biz.generate_partner_order_data(**kwargs)
+
+    def create_order_file(self, instance, template_name, order_data, filename, existed_uuid):
+        """注文書を作成
+
+        :param instance:
+        :param template_name:
+        :param order_data:
+        :param filename:
+        :param existed_uuid:
+        :return:
+        """
+        html = render_to_string(template_name, {'data': order_data})
+        byte_file = file_gen.generate_report_pdf_binary(html)
+        return Attachment.save_from_bytes(
+            instance,
+            byte_file,
+            filename,
+            existed_file=existed_uuid
+        )
+
+
+class LumpOrderCreateApiView(BaseApiView, PartnerOrderCreateMixin):
+
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        company = Company.get_company()
+        partner = models.Partner.objects.get(pk=kwargs.get('pk'))
+        contract = models.BpLumpContract.objects.get(pk=kwargs.get('contract_id'))
+        publish_date = timezone.now().date()
+        salesperson = request.user.salesperson if hasattr(request.user, 'salesperson') else None
+        year = publish_date.strftime('%Y')
+        month = publish_date.strftime('%m')
+        order = models.BpLumpOrder.get_next_bp_order(
+            partner=partner,
+            contract=contract,
+            year=year,
+            month=month,
+            publish_date=publish_date,
+            salesperson=salesperson,
+        )
+        order_data = self.get_order_data(
+            company=company,
+            partner=partner,
+            order_no=order.order_no,
+            year=year,
+            month=month,
+            publish_date=publish_date,
+            salesperson=salesperson,
+            contract=contract,
+        )
+        if not order.pk:
+            order.created_user = request.user
+        order.updated_user = request.user
+        order.save(other_data=order_data)
+        filename, filename_request = common.get_order_file_path(order.order_no, contract.project.name)
+        # 注文書
+        attachment = self.create_order_file(
+            order, 'partner/lump_order.html', order_data, filename, order.filename
+        )
+        order.filename = attachment.uuid
+        # 注文請書
+        attachment = self.create_order_file(
+            order, 'partner/lump_order_request.html', order_data, filename_request, order.filename_request
+        )
+        order.filename_request = attachment.uuid
+        order.save(update_fields=('filename', 'filename_request'))
+        return Response(biz.get_partner_lump_contracts(partner.pk, contract.pk))
+
+
+class BpMemberOrderCreateApiView(BaseApiView, PartnerOrderCreateMixin):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
@@ -207,14 +282,17 @@ class BpMemberOrderCreateApiView(BaseApiView):
         order = models.BpMemberOrder.get_next_bp_order(
             partner, project_member, year, month, publish_date, end_year, end_month, salesperson
         )
-        order_data = biz.generate_partner_order_data(
-            company, partner, project_member,
-            order.order_no,
-            year,
-            month,
-            publish_date,
-            end_year,
-            end_month,
+        order_data = self.get_order_data(
+            company=company,
+            partner=partner,
+            order_no=order.order_no,
+            year=year,
+            month=month,
+            publish_date=publish_date,
+            salesperson=salesperson,
+            end_year=end_year,
+            end_month=end_month,
+            project_member=project_member,
         )
         if not order.pk:
             order.created_user = request.user
@@ -222,23 +300,13 @@ class BpMemberOrderCreateApiView(BaseApiView):
         order.save(other_data=order_data)
         filename, filename_request = common.get_order_file_path(order.order_no, project_member.member.full_name)
         # 注文書
-        html = render_to_string('partner/member_order.html', {'data': order_data})
-        byte_file = file_gen.generate_report_pdf_binary(html)
-        attachment = Attachment.save_from_bytes(
-            order,
-            byte_file,
-            filename,
-            existed_file=order.filename
+        attachment = self.create_order_file(
+            order, 'partner/member_order.html', order_data, filename, order.filename
         )
         order.filename = attachment.uuid
         # 注文請書
-        html = render_to_string('partner/member_order_request.html', {'data': order_data})
-        byte_file = file_gen.generate_report_pdf_binary(html)
-        attachment = Attachment.save_from_bytes(
-            order,
-            byte_file,
-            filename_request,
-            existed_file=order.filename_request
+        attachment = self.create_order_file(
+            order, 'partner/member_order_request.html', order_data, filename, order.filename_request
         )
         order.filename_request = attachment.uuid
         order.save(update_fields=('filename', 'filename_request'))
@@ -272,3 +340,13 @@ class PartnerLumpContractApiView(BaseApiView):
             'count': len(data),
             'results': data,
         }
+
+
+class BpLumpOrderViewSet(BaseReadOnlyModelViewSet):
+    queryset = models.BpLumpOrder.objects.filter(is_deleted=False)
+    serializer_class = serializers.BpLumpOrderSerializer
+
+    @action(methods=['get'], detail=True)
+    def mail(self, *args, **kwargs):
+        mail_data = self.get_object().get_mail_data()
+        return Response(mail_data)

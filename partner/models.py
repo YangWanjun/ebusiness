@@ -10,6 +10,7 @@ from django.db.models import Max
 from django.db.models.functions import Concat
 from django.contrib.auth.models import User
 from django.contrib.humanize.templatetags import humanize
+from django.utils import timezone
 
 from mail.models import MailGroup
 from master.models import Bank, Attachment
@@ -336,19 +337,147 @@ class BpLumpContract(BaseModel):
     def __str__(self):
         return self.project.name
 
+    def get_cost(self):
+        return self.allowance_base
 
-class BpMemberOrder(BaseModel):
-    project_member = models.ForeignKey('project.ProjectMember', on_delete=models.PROTECT, verbose_name="案件メンバー")
+
+class AbstractPartnerOrder(BaseModel):
     partner = models.ForeignKey(Partner, db_column='subcontractor_id', on_delete=models.PROTECT, verbose_name="協力会社")
     order_no = models.CharField(max_length=14, unique=True, verbose_name="注文番号")
     year = models.CharField(max_length=4, validators=(RegexValidator(regex='^20[0-9]{2}$'),), verbose_name="開始年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_MONTH_LIST, verbose_name="開始月")
-    end_year = models.CharField(max_length=4, validators=(RegexValidator(regex='^20[0-9]{2}$'),), verbose_name="終了年")
-    end_month = models.CharField(max_length=2, choices=constants.CHOICE_MONTH_LIST, verbose_name="終了月")
-    business_days = models.IntegerField(default=0, verbose_name="営業日数")
     filename = models.CharField(max_length=255, blank=True, null=True, verbose_name="注文書ファイル名")
     filename_request = models.CharField(max_length=255, blank=True, null=True, verbose_name="注文請書")
     is_sent = models.BooleanField(default=False, verbose_name="送信")
+    created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
+    deleted_dt = models.DateTimeField(
+        blank=True, null=True, editable=False, db_column='deleted_date', verbose_name="更新日時"
+    )
+    attachments = GenericRelation(Attachment, related_query_name='partner_order_set')
+
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def get_next_order_no(cls, salesperson, publish_date):
+        """注文番号を取得する。
+
+        :param salesperson ＢＰメンバーの営業員
+        :param publish_date:
+        """
+        prefix = '-'
+        if salesperson and salesperson.first_name_en:
+            prefix = salesperson.first_name_en[0].upper()
+
+        order_no = "EB{0:04d}{1:02d}{2:02d}{3}".format(
+            publish_date.year, publish_date.month, publish_date.day, prefix
+        )
+        # メンバー注文書の最大番号取得
+        max_order_no1 = BpMemberOrder.objects.filter(order_no__startswith=order_no).aggregate(Max('order_no'))
+        max_order_no1 = max_order_no1.get('order_no__max', '') or ''
+        # 一括注文書の最大番号取得
+        max_order_no2 = BpLumpOrder.objects.filter(order_no__startswith=order_no).aggregate(Max('order_no'))
+        max_order_no2 = max_order_no2.get('order_no__max', '') or ''
+        max_order_no = max(max_order_no1, max_order_no2)
+        if max_order_no:
+            index = int(max_order_no[-2:]) + 1
+        else:
+            index = 1
+        return "{0}{1:02d}".format(order_no, index)
+
+    @classmethod
+    def get_next_bp_order(cls, **kwargs):
+        pass
+
+    def get_mail_data(self):
+        group = MailGroup.get_partner_order_group()
+        recipient_list, cc_list = self.partner.get_pay_notify_recipient_list()
+        cc_list.extend(group.get_cc_list())
+        bcc_list = group.get_bcc_list()
+        attachment_list_choices = [{
+            'value': item.uuid,
+            'display_name': item.name,
+        } for item in self.attachments.filter(is_deleted=False)]
+        mail_data = group.get_mail_data({
+            'recipient': recipient_list,
+            'cc_list': cc_list,
+            'bcc_list': bcc_list,
+            'attachment_list': [self.filename, self.filename_request],
+            'subcontractor': self.partner,
+            'deadline': self.get_deadline(),
+            'month': self.month,
+            'is_encrypt': True,
+        })
+        mail_data['attachment_list_choices'] = attachment_list_choices
+        mail_data['content_type'] = ContentType.objects.get_for_model(self).pk
+        mail_data['object_id'] = self.pk
+        return mail_data
+
+    def mail_sent_callback(self):
+        """メール送信完了後のコールバック関数
+
+        :return:
+        """
+        self.is_sent = True
+        self.save(update_fields=('is_sent',))
+
+    def get_deadline(self):
+        """支払通知書とＢＰ注文書をメール送信時の支払締切日を取得する
+
+        来月の第六営業日
+
+        :return:
+        """
+        date = common.get_first_day_from_ym(self.year + self.month)
+        next_month = common.add_months(date, 1)
+        business_days = common.get_business_days(next_month.year, next_month.month)
+        if len(business_days) > 5:
+            return business_days[5]
+        else:
+            return next_month
+
+
+class AbstractPartnerOrderHeading(BaseModel):
+    publish_date = models.CharField(max_length=200, verbose_name="発行年月日")
+    partner_name = models.CharField(
+        max_length=50, blank=True, null=True, db_column='subcontractor_name', verbose_name="下請け会社名"
+    )
+    partner_post_code = models.CharField(
+        max_length=8, blank=True, null=True, db_column='subcontractor_post_code', verbose_name="協力会社郵便番号"
+    )
+    partner_address1 = models.CharField(
+        max_length=200, blank=True, null=True, db_column='subcontractor_address1', verbose_name="協力会社住所１"
+    )
+    partner_address2 = models.CharField(
+        max_length=200, blank=True, null=True, db_column='subcontractor_address2', verbose_name="協力会社住所２"
+    )
+    partner_tel = models.CharField(
+        max_length=15, blank=True, null=True, db_column='subcontractor_tel', verbose_name="協力会社電話番号"
+    )
+    partner_fax = models.CharField(
+        max_length=15, blank=True, null=True, db_column='subcontractor_fax', verbose_name="協力会社ファックス"
+    )
+    company_name = models.CharField(blank=True, null=True, max_length=30, verbose_name="会社名")
+    company_address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name="本社住所１")
+    company_address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name="本社住所２")
+    company_tel = models.CharField(blank=True, null=True, max_length=15, verbose_name="お客様電話番号")
+    company_fax = models.CharField(blank=True, null=True, max_length=15, verbose_name="会社ファックス")
+    project_name = models.CharField(blank=True, null=True, max_length=50, verbose_name="業務名称")
+    start_date = models.CharField(blank=True, null=True, max_length=20, verbose_name="作業開始日")
+    end_date = models.CharField(blank=True, null=True, max_length=20, verbose_name="作業終了日")
+    comment = models.CharField(max_length=2000, blank=True, null=True, verbose_name="備考")
+
+    class Meta:
+        abstract = True
+
+
+class BpMemberOrder(AbstractPartnerOrder):
+    partner = models.ForeignKey(Partner, db_column='subcontractor_id', on_delete=models.PROTECT, verbose_name="協力会社")
+    project_member = models.ForeignKey('project.ProjectMember', on_delete=models.PROTECT, verbose_name="案件メンバー")
+    end_year = models.CharField(max_length=4, validators=(RegexValidator(regex='^20[0-9]{2}$'),), verbose_name="終了年")
+    end_month = models.CharField(max_length=2, choices=constants.CHOICE_MONTH_LIST, verbose_name="終了月")
+    business_days = models.IntegerField(default=0, verbose_name="営業日数")
     created_user = models.ForeignKey(
         User, related_name='created_bp_orders', null=True, on_delete=models.PROTECT,
         editable=False, verbose_name="作成者"
@@ -357,12 +486,6 @@ class BpMemberOrder(BaseModel):
         User, related_name='updated_bp_orders', null=True, on_delete=models.PROTECT,
         editable=False, verbose_name="更新者"
     )
-    created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
-    updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
-    deleted_dt = models.DateTimeField(
-        blank=True, null=True, editable=False, db_column='deleted_date', verbose_name="更新日時"
-    )
-    attachments = GenericRelation(Attachment, related_query_name='partner_order_set')
 
     class Meta:
         managed = False
@@ -413,76 +536,10 @@ class BpMemberOrder(BaseModel):
             )
         return order
 
-    @classmethod
-    def get_next_order_no(cls, salesperson, publish_date):
-        """注文番号を取得する。
-
-        :param salesperson ＢＰメンバーの営業員
-        :param publish_date:
-        """
-        prefix = '-'
-        if salesperson and salesperson.first_name_en:
-            prefix = salesperson.first_name_en[0].upper()
-
-        order_no = "EB{0:04d}{1:02d}{2:02d}{3}".format(
-            publish_date.year, publish_date.month, publish_date.day, prefix
-        )
-        max_order_no = cls.objects.filter(order_no__startswith=order_no).aggregate(Max('order_no'))
-        max_order_no = max_order_no.get('order_no__max')
-        if max_order_no:
-            index = int(max_order_no[-2:]) + 1
-        else:
-            index = 1
-        return "{0}{1:02d}".format(order_no, index)
-
-    def get_mail_data(self):
-        group = MailGroup.get_partner_order_group()
-        recipient_list, cc_list = self.partner.get_pay_notify_recipient_list()
-        cc_list.extend(group.get_cc_list())
-        bcc_list = group.get_bcc_list()
-        attachment_list_choices = [{
-            'value': item.uuid,
-            'display_name': item.name,
-        } for item in self.attachments.filter(is_deleted=False)]
-        mail_data = group.get_mail_data({
-            'recipient': recipient_list,
-            'cc_list': cc_list,
-            'bcc_list': bcc_list,
-            'attachment_list': [self.filename, self.filename_request],
-            'subcontractor': self.partner,
-            'deadline': self.get_deadline(),
-            'month': self.month,
-            'is_encrypt': True,
-        })
-        mail_data['attachment_list_choices'] = attachment_list_choices
-        mail_data['content_type'] = ContentType.objects.get_for_model(self).pk
-        mail_data['object_id'] = self.pk
-        return mail_data
-
     def mail_sent_callback(self):
-        """メール送信完了後のコールバック関数
-
-        :return:
-        """
-        self.is_sent = True
-        self.save(update_fields=('is_sent',))
+        super(BpMemberOrder, self).mail_sent_callback()
         from .serializers import BpMemberOrderDisplaySerializer
         return BpMemberOrderDisplaySerializer(self).data
-
-    def get_deadline(self):
-        """支払通知書とＢＰ注文書をメール送信時の支払締切日を取得する
-
-        来月の第六営業日
-
-        :return:
-        """
-        date = common.get_first_day_from_ym(self.year + self.month)
-        next_month = common.add_months(date, 1)
-        business_days = common.get_business_days(next_month.year, next_month.month)
-        if len(business_days) > 5:
-            return business_days[5]
-        else:
-            return next_month
 
     @transaction.atomic
     def save(self, force_insert=False, force_update=False, using=None,
@@ -499,34 +556,8 @@ class BpMemberOrder(BaseModel):
             )
 
 
-class BpMemberOrderHeading(BaseModel):
+class BpMemberOrderHeading(AbstractPartnerOrderHeading):
     order = models.OneToOneField(BpMemberOrder, db_column='bp_order_id', on_delete=models.PROTECT, verbose_name="ＢＰ注文書")
-    publish_date = models.CharField(max_length=200, verbose_name="発行年月日")
-    partner_name = models.CharField(
-        max_length=50, blank=True, null=True, db_column='subcontractor_name', verbose_name="下請け会社名"
-    )
-    partner_post_code = models.CharField(
-        max_length=8, blank=True, null=True, db_column='subcontractor_post_code', verbose_name="協力会社郵便番号"
-    )
-    partner_address1 = models.CharField(
-        max_length=200, blank=True, null=True, db_column='subcontractor_address1', verbose_name="協力会社住所１"
-    )
-    partner_address2 = models.CharField(
-        max_length=200, blank=True, null=True, db_column='subcontractor_address2', verbose_name="協力会社住所２"
-    )
-    partner_tel = models.CharField(
-        max_length=15, blank=True, null=True, db_column='subcontractor_tel', verbose_name="協力会社電話番号"
-    )
-    partner_fax = models.CharField(
-        max_length=15, blank=True, null=True, db_column='subcontractor_fax', verbose_name="協力会社ファックス"
-    )
-    company_name = models.CharField(blank=True, null=True, max_length=30, verbose_name="会社名")
-    company_tel = models.CharField(blank=True, null=True, max_length=15, verbose_name="お客様電話番号")
-    company_address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name="本社住所１")
-    company_address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name="本社住所２")
-    project_name = models.CharField(blank=True, null=True, max_length=50, verbose_name="業務名称")
-    start_date = models.CharField(blank=True, null=True, max_length=20, verbose_name="作業開始日")
-    end_date = models.CharField(blank=True, null=True, max_length=20, verbose_name="作業終了日")
     master = models.CharField(blank=True, null=True, max_length=30, verbose_name="委託業務責任者（甲）")
     middleman = models.CharField(blank=True, null=True, max_length=30, verbose_name="連絡窓口担当者（甲）")
     partner_master = models.CharField(
@@ -552,7 +583,6 @@ class BpMemberOrderHeading(BaseModel):
     allowance_absenteeism_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name="欠勤手当メモ")
     allowance_other = models.IntegerField(blank=True, null=True, verbose_name="その他手当")
     allowance_other_memo = models.CharField(blank=True, null=True, max_length=255, verbose_name="その他手当メモ")
-    comment = models.CharField(max_length=2000, blank=True, null=True, verbose_name="備考")
     delivery_properties_comment = models.CharField(max_length=255, blank=True, null=True, verbose_name="納入物件")
     payment_condition_comments = models.CharField(max_length=2000, blank=True, null=True, verbose_name="支払条件")
     contract_items_comments = models.CharField(max_length=2000, blank=True, null=True, verbose_name="契約条項")
@@ -568,18 +598,12 @@ class BpMemberOrderHeading(BaseModel):
         return super(BaseModel, self).delete(using, keep_parents)
 
 
-class BpLumpOrder(BaseModel):
+class BpLumpOrder(AbstractPartnerOrder):
     partner = models.ForeignKey(Partner, db_column='subcontractor_id', on_delete=models.PROTECT, verbose_name="協力会社")
     contract = models.OneToOneField(BpLumpContract, on_delete=models.PROTECT, verbose_name="契約")
-    order_no = models.CharField(max_length=14, unique=True, verbose_name="注文番号")
-    year = models.CharField(max_length=4, validators=(RegexValidator(regex='^20[0-9]{2}$'),), verbose_name="対象年")
-    month = models.CharField(max_length=2, choices=constants.CHOICE_MONTH_LIST, verbose_name="対象月")
     amount = models.IntegerField(default=0, verbose_name="契約金額")
     tax_amount = models.IntegerField(default=0, verbose_name="消費税")
     total_amount = models.IntegerField(default=0, verbose_name="合計額")
-    filename = models.CharField(max_length=255, blank=True, null=True, verbose_name="注文書ファイル名")
-    filename_request = models.CharField(max_length=255, blank=True, null=True, verbose_name="注文請書")
-    is_sent = models.BooleanField(default=False, verbose_name="送信")
     created_user = models.ForeignKey(
         User, related_name='created_lump_orders', null=True, on_delete=models.PROTECT,
         editable=False, verbose_name="作成者"
@@ -587,11 +611,6 @@ class BpLumpOrder(BaseModel):
     updated_user = models.ForeignKey(
         User, related_name='updated_lump_orders', null=True, on_delete=models.PROTECT,
         editable=False, verbose_name="更新者"
-    )
-    created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
-    updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
-    deleted_dt = models.DateTimeField(
-        blank=True, null=True, editable=False, db_column='deleted_date', verbose_name="更新日時"
     )
     attachments = GenericRelation(Attachment, related_query_name='partner_lump_order_set')
 
@@ -602,36 +621,80 @@ class BpLumpOrder(BaseModel):
         verbose_name = "ＢＰ一括註文書"
         verbose_name_plural = "ＢＰ一括註文書一覧"
 
+    @classmethod
+    def get_next_bp_order(cls, partner, contract, year, month, publish_date=None, salesperson=None):
+        """指定メンバー、年月によって、注文情報を取得する。
 
-class BpLumpOrderHeading(models.Model):
+        :param partner:
+        :param contract:
+        :param year:
+        :param month:
+        :param publish_date:
+        :param salesperson: ＢＰメンバーの営業員
+        :return:
+        """
+        if publish_date is None:
+            publish_date = timezone.now().date()
+        try:
+            order = cls.objects.get(
+                partner=partner,
+                contract=contract,
+                is_deleted=False,
+            )
+        except ObjectDoesNotExist:
+            order = cls(
+                partner=partner,
+                contract=contract,
+                order_no=BpMemberOrder.get_next_order_no(salesperson, publish_date),
+                year=year,
+                month=month,
+            )
+        return order
+
+    def mail_sent_callback(self):
+        super(BpLumpOrder, self).mail_sent_callback()
+        from .biz import get_partner_lump_contracts
+        return get_partner_lump_contracts(self.partner_id, self.contract_id)
+
+    @transaction.atomic
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None, other_data=None):
+        super(BpLumpOrder, self).save(force_insert, force_update, using, update_fields)
+        if other_data:
+            data = other_data.get('heading')
+            # 既存のデータを全部消す。
+            if hasattr(self, "bplumporderheading"):
+                self.bplumporderheading.delete(using)
+            BpLumpOrderHeading.objects.create(
+                order=self,
+                publish_date=data.get('publish_date'),
+                partner_name=data.get('partner_name'),
+                partner_post_code=data.get('partner_post_code'),
+                partner_address1=data.get('partner_address1'),
+                partner_address2=data.get('partner_address2'),
+                partner_tel=data.get('partner_tel'),
+                partner_fax=data.get('partner_fax'),
+                company_name=data.get('company_name'),
+                company_address1=data.get('company_address1'),
+                company_address2=data.get('company_address2'),
+                company_tel=data.get('company_tel'),
+                company_fax=data.get('company_fax'),
+                project_name=data.get('project_name'),
+                start_date=data.get('start_date'),
+                end_date=data.get('end_date'),
+                comment=data.get('comment'),
+                delivery_date=data.get('delivery_date'),
+                project_content=data.get('project_content'),
+                workload=data.get('workload'),
+                project_result=data.get('project_result'),
+                allowance_base=data.get('allowance_base'),
+                allowance_base_tax=data.get('allowance_base_tax'),
+                allowance_base_total=data.get('allowance_base_total'),
+            )
+
+
+class BpLumpOrderHeading(AbstractPartnerOrderHeading):
     order = models.OneToOneField(BpLumpOrder, db_column='bp_order_id', on_delete=models.PROTECT, verbose_name="ＢＰ注文書")
-    publish_date = models.CharField(max_length=200, verbose_name="発行年月日")
-    partner_name = models.CharField(
-        max_length=50, blank=True, null=True, db_column='subcontractor_name', verbose_name="下請け会社名"
-    )
-    partner_post_code = models.CharField(
-        max_length=8, blank=True, null=True, db_column='subcontractor_post_code', verbose_name="協力会社郵便番号"
-    )
-    partner_address1 = models.CharField(
-        max_length=200, blank=True, null=True, db_column='subcontractor_address1', verbose_name="協力会社住所１"
-    )
-    partner_address2 = models.CharField(
-        max_length=200, blank=True, null=True, db_column='subcontractor_address2', verbose_name="協力会社住所２"
-    )
-    partner_tel = models.CharField(
-        max_length=15, blank=True, null=True, db_column='subcontractor_tel', verbose_name="協力会社電話番号"
-    )
-    partner_fax = models.CharField(
-        max_length=15, blank=True, null=True, db_column='subcontractor_fax', verbose_name="協力会社ファックス"
-    )
-    company_address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name="本社住所１")
-    company_address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name="本社住所２")
-    company_name = models.CharField(blank=True, null=True, max_length=30, verbose_name="会社名")
-    company_tel = models.CharField(blank=True, null=True, max_length=15, verbose_name="会社電話番号")
-    company_fax = models.CharField(blank=True, null=True, max_length=15, verbose_name="会社ファックス")
-    project_name = models.CharField(blank=True, null=True, max_length=50, verbose_name="業務名称")
-    start_date = models.CharField(blank=True, null=True, max_length=20, verbose_name="作業開始日")
-    end_date = models.CharField(blank=True, null=True, max_length=20, verbose_name="作業終了日")
     delivery_date = models.CharField(blank=True, null=True, max_length=20, verbose_name="納品日")
     project_content = models.CharField(max_length=200, blank=True, null=True, verbose_name="作業内容")
     workload = models.CharField(max_length=200, blank=True, null=True, verbose_name="作業量")
@@ -639,7 +702,6 @@ class BpLumpOrderHeading(models.Model):
     allowance_base = models.CharField(blank=True, null=True, max_length=20, verbose_name="契約金額")
     allowance_base_tax = models.CharField(blank=True, null=True, max_length=20, verbose_name="消費税")
     allowance_base_total = models.CharField(blank=True, null=True, max_length=20, verbose_name="合計額")
-    comment = models.TextField(blank=True, null=True, verbose_name="備考")
 
     class Meta:
         managed = False
@@ -647,3 +709,6 @@ class BpLumpOrderHeading(models.Model):
         default_permissions = ()
         verbose_name = "ＢＰ一括註文書見出し"
         verbose_name_plural = "ＢＰ一括註文書見出し一覧"
+
+    def delete(self, using=None, keep_parents=False):
+        return super(BaseModel, self).delete(using, keep_parents)

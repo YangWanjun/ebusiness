@@ -118,3 +118,10 @@ class BpLumpContractSerializer(BaseModelSerializer):
     class Meta:
         model = models.BpLumpContract
         fields = '__all__'
+
+
+class BpLumpOrderSerializer(BaseModelSerializer):
+
+    class Meta:
+        model = models.BpLumpOrder
+        fields = '__all__'

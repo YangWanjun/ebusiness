@@ -121,7 +121,10 @@ def get_partner_member_orders(member_id):
 
 
 def generate_partner_order_data(
-        company, partner, project_member, order_no, year, month, publish_date, end_year=None, end_month=None
+        company, partner, order_no, year, month, publish_date, salesperson,
+        end_year=None, end_month=None,
+        project_member=None,
+        contract=None,
 ):
     if not end_year or not end_month:
         end_year = year
@@ -130,28 +133,46 @@ def generate_partner_order_data(
         # 終了年月は開始年月の前の場合エラーとする。
         raise CustomException(constants.ERROR_DELETE_PROTECTED.format(year=end_year, month=end_month))
     interval = (int(end_year) * 12 + int(end_month)) - (int(year) * 12 + int(month)) + 1
-    member = project_member.member
-    contract = get_partner_member_contract(partner, member, year, month)
+    if contract is None:
+        member = project_member.member
+        contract = get_partner_member_contract(partner, member, year, month)
     heading = generate_partner_order_heading(
-        company, project_member, partner, contract, year, month, publish_date, interval
+        company, partner, contract, year, month, publish_date, interval, salesperson,
+        project_member=project_member,
     )
     order = {'order_no': order_no}
     return {
         'order': order,
         'heading': heading,
+        'signature': common.get_signature(),
     }
 
 
 def generate_partner_order_heading(
-        company, project_member, partner, contract, year, month, publish_date, interval
+        company, partner, contract, year, month, publish_date, interval, salesperson,
+        project_member=None,
 ):
     first_day = common.get_first_day_from_ym(year + month)
     last_day = common.get_last_day_by_month(first_day)
-    project = project_member.project
-    member = project_member.member
-    end_date = last_day if last_day <= project_member.end_date else project_member.end_date
-    salesperson = get_member_salesperson_by_month(member, end_date)
     data = dict()
+    if project_member is not None:
+        project = project_member.project
+        member = project_member.member
+        start_date = first_day if first_day >= project_member.start_date else project_member.start_date
+        end_date = last_day if last_day <= project_member.end_date else project_member.end_date
+    else:
+        # 一括の場合
+        project = contract.project
+        member = None
+        data['delivery_date'] = contract.delivery_date
+        data['project_content'] = contract.project_content
+        data['workload'] = contract.workload
+        data['project_result'] = contract.project_result
+        data['allowance_base'] = contract.get_cost()
+        data['allowance_base_tax'] = contract.allowance_base_tax
+        data['allowance_base_total'] = contract.allowance_base_total
+        start_date = project.start_date
+        end_date = project.end_date
     data['publish_date'] = publish_date.strftime('%Y-%m-%d') \
         if isinstance(publish_date, (datetime.date, datetime.datetime)) else publish_date
     data['partner_name'] = partner.name
@@ -167,39 +188,40 @@ def generate_partner_order_heading(
     data['company_address2'] = company.address2
     # 案件情報
     data['project_name'] = project.name
-    data['start_date'] = first_day if first_day >= project_member.start_date else project_member.start_date
+    data['start_date'] = start_date
     data['end_date'] = end_date
     data['master'] = company.president
-    data['middleman'] = salesperson.full_name
+    data['middleman'] = salesperson.full_name if salesperson else None
     data['partner_master'] = partner.president
     data['partner_middleman'] = partner.middleman
-    data['member_name'] = member.full_name
+    data['member_name'] = member.full_name if member else None
     data['location'] = project.address if project.address else constants.LABEL_BP_ORDER_DEFAULT_LOCATION
     # 精算情報
     data['is_hourly_pay'] = contract.is_hourly_pay
-    data['is_fixed_cost'] = contract.is_fixed_cost
-    data['is_show_formula'] = contract.is_show_formula
-    data['calculate_type_comment'] = contract.get_calculate_type_comment()
-    data['allowance_base'] = contract.get_cost() * interval
-    data['allowance_base_memo'] = contract.allowance_base_memo
-    if interval > 1:
-        data['allowance_base_memo'] = "基本料金：￥{}円  ({}税金抜き)".format(
-            humanize.intcomma(data['allowance_base']),
-            '固定、' if contract.is_fixed_cost else '',
-        )
-    data['allowance_time_min'] = contract.get_allowance_time_min(year, month)
-    data['allowance_time_max'] = contract.allowance_time_max
-    data['allowance_time_memo'] = contract.get_allowance_time_memo(year, month)
-    data['allowance_overtime'] = contract.allowance_overtime
-    data['allowance_overtime_memo'] = contract.allowance_overtime_memo
-    data['allowance_absenteeism'] = contract.get_allowance_absenteeism(year, month)
-    data['allowance_absenteeism_memo'] = contract.get_allowance_absenteeism_memo(year, month)
-    data['allowance_other'] = contract.allowance_other
-    data['allowance_other_memo'] = contract.get_allowance_other_memo()
+    if project_member is not None:
+        data['is_fixed_cost'] = contract.is_fixed_cost
+        data['is_show_formula'] = contract.is_show_formula
+        data['calculate_type_comment'] = contract.get_calculate_type_comment()
+        data['allowance_base'] = contract.get_cost() * interval
+        data['allowance_base_memo'] = contract.allowance_base_memo
+        if interval > 1:
+            data['allowance_base_memo'] = "基本料金：￥{}円  ({}税金抜き)".format(
+                humanize.intcomma(data['allowance_base']),
+                '固定、' if contract.is_fixed_cost else '',
+            )
+        data['allowance_time_min'] = contract.get_allowance_time_min(year, month)
+        data['allowance_time_max'] = contract.allowance_time_max
+        data['allowance_time_memo'] = contract.get_allowance_time_memo(year, month)
+        data['allowance_overtime'] = contract.allowance_overtime
+        data['allowance_overtime_memo'] = contract.allowance_overtime_memo
+        data['allowance_absenteeism'] = contract.get_allowance_absenteeism(year, month)
+        data['allowance_absenteeism_memo'] = contract.get_allowance_absenteeism_memo(year, month)
+        data['allowance_other'] = contract.allowance_other
+        data['allowance_other_memo'] = contract.get_allowance_other_memo()
+        data['delivery_properties_comment'] = Config.get_bp_order_delivery_properties()
+        data['payment_condition_comments'] = Config.get_bp_order_payment_condition()
+        data['contract_items_comments'] = Config.get_bp_order_contract_items()
     data['comment'] = contract.comment
-    data['delivery_properties_comment'] = Config.get_bp_order_delivery_properties()
-    data['payment_condition_comments'] = Config.get_bp_order_payment_condition()
-    data['contract_items_comments'] = Config.get_bp_order_contract_items()
     return data
 
 
@@ -227,7 +249,7 @@ def get_partner_member_contract(partner, member, year=None, month=None):
         raise CustomException(constants.ERROR_MULTI_PARTNER_CONTRACT.format(name=member, company=partner))
 
 
-def get_partner_lump_contracts(partner_id):
+def get_partner_lump_contracts(partner_id, contract_id=None):
     with connection.cursor() as cursor:
         cursor.callproc('sp_partner_lump_orders', (partner_id,))
         results = common.dictfetchall(cursor)
@@ -236,4 +258,6 @@ def get_partner_lump_contracts(partner_id):
             partner_id=partner_id,
             order_id=row['order_id']
         )
+        if contract_id is not None:
+            return row
     return results

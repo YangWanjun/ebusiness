@@ -42,6 +42,7 @@ router.register(r'partner-pay-notify-recipient', partner_api.PartnerPayNotifyRec
 router.register(r'partner-bank-account', partner_api.PartnerBankAccountViewSet)
 router.register(r'partner-contracts', partner_api.BpContractViewSet)
 router.register(r'partner-lump-contract', partner_api.BpLumpContractViewSet)
+router.register(r'partner-lump-order', partner_api.BpLumpOrderViewSet)
 router.register(r'partner-member-order', partner_api.BpMemberOrderViewSet)
 router.register(r'customer', project_api.CustomerViewSet)
 router.register(r'customer-member', project_api.CustomerMemberViewSet)
@@ -88,13 +89,15 @@ urlpatterns = [
         partner_api.PartnerOrderDetailApiView.as_view(), {'category': 'member'}),
     url(r'^api/partner/(?P<pk>\d+)/members/(?P<project_member_id>\d+)/orders/create/$',
         partner_api.BpMemberOrderCreateApiView.as_view()),
-    url(r'^api/partner/(?P<pk>\d+)/lump-contract/', partner_api.PartnerLumpContractApiView.as_view()),
+    url(r'^api/partner/(?P<pk>\d+)/lump-contract/$', partner_api.PartnerLumpContractApiView.as_view()),
     url(r'^api/partner/lump/order/(?P<pk>\d+)/$',
         partner_api.PartnerOrderDetailApiView.as_view(), {'category': 'lump'}),
+    url(r'^api/partner/(?P<pk>\d+)/lump-contract/(?P<contract_id>\d+)/orders/create/$',
+        partner_api.LumpOrderCreateApiView.as_view(), {'category': 'lump'}),
     url(r'^api/turnover/monthly/chart$', turnover_api.TurnoverMonthlyChartView.as_view()),
     url(r'^api/turnover/yearly/chart$', turnover_api.TurnoverYearlyChartView.as_view()),
     url(r'^api/turnover/division/monthly/chart$', turnover_api.TurnoverMonthlyByDivisionChartView.as_view()),
-    url(r'^api/attachment/download/(?P<uuid>[^/]+)$', master_api.FileDownloadApiView.as_view()),
+    url(r'^api/attachment/download/(?P<uuid>[^/?]+)$', master_api.FileDownloadApiView.as_view()),
 
     url(r'^partner/', include('partner.urls')),
 ]

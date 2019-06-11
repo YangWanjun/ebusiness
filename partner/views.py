@@ -2,6 +2,7 @@ import datetime
 import django_filters
 
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.utils import timezone
 
@@ -12,6 +13,7 @@ from rest_framework.response import Response
 from . import models, serializers, biz
 from master.models import Company, Attachment
 from member.biz import get_next_bp_employee_id, get_member_salesperson_by_month
+from member.models import Organization
 from member.serializers import MemberSerializer, OrganizationPeriodSerializer, SalespersonPeriodSerializer
 from project.models import ProjectMember
 from utils import file_gen, common, constants
@@ -350,3 +352,33 @@ class BpLumpOrderViewSet(BaseReadOnlyModelViewSet):
     def mail(self, *args, **kwargs):
         mail_data = self.get_object().get_mail_data()
         return Response(mail_data)
+
+
+class PartnerDivisionsInMonthApi(BaseApiView):
+
+    def get_context_data(self, **kwargs):
+        category = kwargs.get('category')
+        partner_id = kwargs.get('pk')
+        year = kwargs.get('year')
+        month = kwargs.get('month')
+        if category == 'divisions':
+            data = biz.get_partner_divisions_by_month(partner_id, year, month)
+        elif category == 'details':
+            division_id = kwargs.get('division_id', 0) or 0
+            division_id = int(division_id)
+            data = biz.get_partner_division_details_by_month(partner_id, division_id or None, year, month)
+        else:
+            data = biz.get_partner_division_all_by_month(partner_id, year, month)
+        return {
+            'count': len(data),
+            'results': data,
+        }
+
+
+class PartnerDivisionPayNotifyCreateApiView(BaseApiView):
+
+    def post(self, request, *args, **kwargs):
+        partner = get_object_or_404(models.Partner, kwargs.get('partner_id'))
+        division = get_object_or_404(Organization, kwargs.get('division_id'))
+        year = kwargs.get('year')
+        month = kwargs.get('month')

@@ -39,6 +39,12 @@ def get_partner_monthly_status(partner_id):
     with connection.cursor() as cursor:
         cursor.callproc('sp_partner_monthly_status', (partner_id,))
         results = common.dictfetchall(cursor)
+    for row in results:
+        row['url'] = '/partner/{partner_id}/division/{year}/{month}'.format(
+            partner_id=partner_id,
+            year=row.get('year'),
+            month=row.get('month'),
+        )
     return results
 
 
@@ -261,3 +267,34 @@ def get_partner_lump_contracts(partner_id, contract_id=None):
         if contract_id is not None:
             return row
     return results
+
+
+def get_partner_division_all_by_month(partner_id, year, month):
+    with connection.cursor() as cursor:
+        cursor.callproc('sp_partner_contracts_by_month', (partner_id, year, month))
+        results = common.dictfetchall(cursor)
+    for row in results:
+        if row.get('id'):
+            row['member_url'] = '/partner/{partner_id}/members/{member_Id}/orders'.format(
+                partner_id=partner_id,
+                member_Id=row.get('id'),
+            )
+    return results
+
+
+def get_partner_division_details_by_month(partner_id, division_id, year, month):
+    results = get_partner_division_all_by_month(partner_id, year, month)
+    return [item for item in results if item.get('division_id') == division_id]
+
+
+def get_partner_divisions_by_month(partner_id, year, month):
+    results = get_partner_division_all_by_month(partner_id, year, month)
+    data = []
+    for row in results:
+        existed_rows = [item for item in data if item.get('division_id') == row.get('division_id')]
+        if len(existed_rows) == 0:
+            row['member_count'] = 1
+            data.append(row)
+        else:
+            existed_rows[0]['member_count'] += 1
+    return data

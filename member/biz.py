@@ -51,7 +51,7 @@ def search_member_by_name(keyword):
     return members
 
 
-def get_member_list(date=timezone.now().today()):
+def get_member_list(date=timezone.now().date()):
     """基準日時の社員メンバー一覧を取得
 
     :param date:
@@ -66,19 +66,6 @@ def get_member_list(date=timezone.now().today()):
         results = common.dictfetchall(cursor)
     members = list(map(set_detail_url, results))
     return members
-
-
-def get_member_details(member_id):
-    member = models.Member.objects.get(pk=member_id)
-    projects = get_project_history(member_id)
-    organizations = get_organization_history(member_id)
-    salesperson = get_salesperson_history(member_id)
-    return {
-        'member': serializers.MemberSerializer(member).data,
-        'projects': projects,
-        'organizations': organizations,
-        'salesperson': salesperson,
-    }
 
 
 def get_project_history(member_id):

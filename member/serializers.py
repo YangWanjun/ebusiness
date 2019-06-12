@@ -1,6 +1,8 @@
 import datetime
 from decimal import Decimal
 
+from django.db.models import Q
+
 from rest_framework import serializers
 
 from . import models
@@ -9,25 +11,13 @@ from utils.rest_base import BaseModelSerializer
 
 
 class MemberSerializer(BaseModelSerializer):
-    full_name = serializers.SerializerMethodField(read_only=True, label='名前')
-    full_kana = serializers.SerializerMethodField(read_only=True, label='カナ')
-    address = serializers.SerializerMethodField(read_only=True, label='住所')
+    full_name = serializers.CharField(read_only=True, label='名前')
+    full_kana = serializers.CharField(read_only=True, label='カナ')
+    address = serializers.CharField(read_only=True, label='住所')
 
     class Meta:
         model = models.Member
         fields = '__all__'
-
-    def get_full_name(self, obj):
-        return obj.full_name
-
-    def get_full_kana(self, obj):
-        return obj.full_kana
-
-    def get_address(self, obj):
-        return obj.address
-
-    get_full_name.sort_field = 'last_name'
-    get_address.sort_field = 'address1'
 
 
 class OrganizationSerializer(BaseModelSerializer):
@@ -92,7 +82,9 @@ class OrganizationPeriodSerializer(BaseModelSerializer):
 
     def validate_start_date(self, value):
         member = self.get_initial()['member']
-        qs = models.OrganizationPeriod.objects.filter(member=member, start_date__lte=value, end_date__gte=value)
+        qs = models.OrganizationPeriod.objects.filter(
+            Q(end_date__gte=value) | Q(end_date__isnull=True), member=member, start_date__lte=value
+        )
         if self.instance:
             qs = qs.exclude(pk=self.instance.pk)
         if member and qs.count() > 0:
@@ -101,7 +93,9 @@ class OrganizationPeriodSerializer(BaseModelSerializer):
 
     def validate_end_date(self, value):
         member = self.get_initial()['member']
-        qs = models.OrganizationPeriod.objects.filter(member=member, start_date__lte=value, end_date__gte=value)
+        qs = models.OrganizationPeriod.objects.filter(
+            Q(end_date__gte=value) | Q(end_date__isnull=True), member=member, start_date__lte=value
+        )
         if self.instance:
             qs = qs.exclude(pk=self.instance.pk)
         if member and qs.count() > 0:
@@ -110,20 +104,38 @@ class OrganizationPeriodSerializer(BaseModelSerializer):
 
 
 class SalespersonSerializer(BaseModelSerializer):
-    full_name = serializers.SerializerMethodField(read_only=True, label='名前')
 
     class Meta:
         model = models.Salesperson
         fields = '__all__'
 
-    def get_full_name(self, obj):
-        return obj.full_name
-
 
 class SalespersonPeriodSerializer(BaseModelSerializer):
     member_name = serializers.CharField(source='member.full_name', read_only=True, label='メンバー')
-    salesperson_name = serializers.CharField(source='salesperson.full_name', read_only=True, label='営業員')
+    salesperson_name = serializers.CharField(source='salesperson.name', read_only=True, label='営業員')
 
     class Meta:
         model = models.SalespersonPeriod
         fields = '__all__'
+
+    def validate_start_date(self, value):
+        member = self.get_initial()['member']
+        qs = models.SalespersonPeriod.objects.filter(
+            Q(end_date__gte=value) | Q(end_date__isnull=True), member=member, start_date__lte=value
+        )
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if member and qs.count() > 0:
+            raise serializers.ValidationError(constants.ERROR_DATE_CONFLICT.format(date=value))
+        return value
+
+    def validate_end_date(self, value):
+        member = self.get_initial()['member']
+        qs = models.SalespersonPeriod.objects.filter(
+            Q(end_date__gte=value) | Q(end_date__isnull=True), member=member, start_date__lte=value
+        )
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if member and qs.count() > 0:
+            raise serializers.ValidationError(constants.ERROR_DATE_CONFLICT.format(date=value))
+        return value

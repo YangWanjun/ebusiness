@@ -16,8 +16,8 @@ Including another URLconf
 from django.conf.urls import url, include
 from django.contrib import admin
 
-from rest_framework import routers
 from rest_framework_jwt.views import obtain_jwt_token
+from rest_framework_extensions import routers
 
 from mail import views as mail_api
 from master import views as master_api
@@ -26,15 +26,28 @@ from partner import views as partner_api
 from project import views as project_api
 from turnover import views as turnover_api
 
-router = routers.DefaultRouter()
+router = routers.ExtendedDefaultRouter()
+member_router = router.register(r'members', member_api.MemberViewSet)
+member_router.register(
+    r'salesperson-periods',
+    member_api.SalespersonPeriodViewSet,
+    basename='salesperson-periods',
+    parents_query_lookups=['member']
+)
+member_router.register(
+    r'organization-periods',
+    member_api.OrganizationPeriodViewSet,
+    basename='organization-periods',
+    parents_query_lookups=['member']
+)
+router.register(r'salesperson', member_api.SalespersonViewSet)
+router.register(r'salesperson-period', member_api.SalespersonPeriodViewSet)
+router.register(r'organization-period', member_api.OrganizationPeriodViewSet)
+
 router.register(r'project-stage', master_api.ProjectStageViewSet)
 router.register(r'bank', master_api.BankViewSet)
 router.register(r'bank-account', master_api.BankAccountViewSet)
-router.register(r'member', member_api.MemberViewSet)
-router.register(r'salesperson', member_api.SalespersonViewSet)
 router.register(r'organization', member_api.OrganizationViewSet)
-router.register(r'organization-period', member_api.OrganizationPeriodViewSet)
-router.register(r'salesperson-period', member_api.SalespersonPeriodViewSet)
 router.register(r'position-ship', member_api.PositionShipViewSet)
 router.register(r'partner', partner_api.PartnerViewSet)
 router.register(r'partner-employee', partner_api.PartnerEmployeeViewSet)
@@ -64,8 +77,6 @@ urlpatterns = [
     url(r'^api/', include(router.urls)),
 
     url(r'^api/me/$', member_api.MeApiView.as_view()),
-    url(r'^api/members/$', member_api.MemberListApiView.as_view()),
-    url(r'^api/member/(?P<member_id>\d+)/details/$', member_api.MemberDetailsApiView.as_view()),
     url(r'^api/member/search$', member_api.SearchMemberView.as_view()),
     url(r'^api/organization-division/$', member_api.DivisionListApiView.as_view()),
     url(r'^api/organization-view/$', member_api.OrganizationListApiView.as_view()),

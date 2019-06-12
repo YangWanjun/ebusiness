@@ -93,7 +93,7 @@ class AbstractCompany(BaseModel):
 
 
 class AbstractMember(BaseModel):
-    member_code = models.CharField(max_length=30, db_column='employee_id', unique=True, verbose_name="コード")
+    code = models.CharField(max_length=30, db_column='employee_id', unique=True, verbose_name="コード")
     last_name = models.CharField(max_length=10, db_column='first_name', verbose_name="姓")
     first_name = models.CharField(max_length=10, db_column='last_name', verbose_name="名")
     last_name_ja = models.CharField(
@@ -153,7 +153,7 @@ class AbstractMember(BaseModel):
 
     @property
     def full_kana(self):
-        return '{} {}'.format(self.last_name_ja, self.first_name_ja)
+        return '{} {}'.format(self.last_name_ja or '', self.first_name_ja or '').strip()
 
     @property
     def address(self):

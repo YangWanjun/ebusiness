@@ -1,27 +1,9 @@
-import django_filters
-
+from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from . import models, serializers, biz
 from utils.rest_base import BaseModelViewSet, BaseApiView
-
-
-class MemberFilter(django_filters.FilterSet):
-
-   class Meta:
-        model = models.Member
-        fields = {
-            'last_name': ['icontains'],
-            'first_name': ['icontains'],
-        }
-
-
-class MemberViewSet(BaseModelViewSet):
-    queryset = models.Member.objects.all()
-    serializer_class = serializers.MemberSerializer
-    list_display = ('full_name', 'gender', 'address', 'join_date')
-    filter_fields = ('last_name', 'first_name')
-    filter_class = MemberFilter
 
 
 class MeApiView(BaseApiView):
@@ -29,6 +11,60 @@ class MeApiView(BaseApiView):
     def post(self, request, *args, **kwargs):
         data = biz.get_me(request.user)
         return Response(data)
+
+
+class MemberViewSet(NestedViewSetMixin, BaseModelViewSet):
+    queryset = models.Member.objects.all()
+    serializer_class = serializers.MemberSerializer
+
+    @action(methods=['get'], url_path='quick-list', detail=False)
+    def quick_list(self, *args, **kwargs):
+        data = biz.get_member_list()
+        return Response({
+            'count': len(data),
+            'results': data
+        })
+
+    @action(methods=['get'], url_path='history', detail=True)
+    def history(self, *args, **kwargs):
+        pk = kwargs.get('pk')
+        member = self.get_object()
+        return Response({
+            'member': serializers.MemberSerializer(member).data,
+            'projects': biz.get_project_history(pk),
+            'organizations': biz.get_organization_history(pk),
+            'salesperson': biz.get_salesperson_history(pk),
+        })
+
+    @action(methods=['get'], url_path='project-history', detail=True)
+    def project_history(self, *args, **kwargs):
+        data = biz.get_project_history(kwargs.get('pk'))
+        return Response(data)
+
+    @action(methods=['get'], url_path='organization-history', detail=True)
+    def organization_history(self, *args, **kwargs):
+        data = biz.get_organization_history(kwargs.get('pk'))
+        return Response(data)
+
+    @action(methods=['get'], url_path='salesperson-history', detail=True)
+    def salesperson_history(self, *args, **kwargs):
+        data = biz.get_salesperson_history(kwargs.get('pk'))
+        return Response(data)
+
+
+class SalespersonViewSet(NestedViewSetMixin, BaseModelViewSet):
+    queryset = models.Salesperson.objects.all()
+    serializer_class = serializers.SalespersonSerializer
+
+
+class SalespersonPeriodViewSet(NestedViewSetMixin, BaseModelViewSet):
+    queryset = models.SalespersonPeriod.objects.all()
+    serializer_class = serializers.SalespersonPeriodSerializer
+
+
+class OrganizationPeriodViewSet(NestedViewSetMixin, BaseModelViewSet):
+    queryset = models.OrganizationPeriod.objects.all()
+    serializer_class = serializers.OrganizationPeriodSerializer
 
 
 class SearchMemberView(BaseApiView):
@@ -63,37 +99,6 @@ class PositionShipViewSet(BaseModelViewSet):
     filter_fields = ('organization',)
 
 
-class MemberListApiView(BaseApiView):
-
-    def get_context_data(self, **kwargs):
-        members = biz.get_member_list()
-        return {
-            'count': len(members),
-            'results': members
-        }
-
-
-class MemberDetailsApiView(BaseApiView):
-
-    def get_context_data(self, **kwargs):
-        data = biz.get_member_details(kwargs.get('member_id'))
-        return data
-
-
-class OrganizationPeriodViewSet(BaseModelViewSet):
-    queryset = models.OrganizationPeriod.objects.all()
-    serializer_class = serializers.OrganizationPeriodSerializer
-    filter_fields = ('member',)
-
-    def get_queryset(self):
-        queryset = super(OrganizationPeriodViewSet, self).get_queryset()
-        member_id = self.request.GET.get('member')
-        if member_id:
-            return queryset.filter(member=member_id)
-        else:
-            return queryset
-
-
 class DivisionListApiView(BaseApiView):
 
     def get_context_data(self, **kwargs):
@@ -105,17 +110,6 @@ class DivisionListApiView(BaseApiView):
             'count': qs_org.count(),
             'results': serializers.OrganizationSerializer(qs_org, many=True).data,
         }
-
-
-class SalespersonViewSet(BaseModelViewSet):
-    queryset = models.Salesperson.objects.all()
-    serializer_class = serializers.SalespersonSerializer
-
-
-class SalespersonPeriodViewSet(BaseModelViewSet):
-    queryset = models.SalespersonPeriod.objects.all()
-    serializer_class = serializers.SalespersonPeriodSerializer
-    filter_fields = ('member',)
 
 
 class OrganizationListApiView(BaseApiView):

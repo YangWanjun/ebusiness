@@ -11,6 +11,11 @@ from utils.errors import CustomException
 
 
 def get_me(user):
+    """ログイン情報を取得
+
+    :param user:
+    :return:
+    """
     me = {
         'username': user.username,
         'email': user.email,

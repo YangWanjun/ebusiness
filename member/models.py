@@ -8,7 +8,18 @@ from utils.models import BaseModel, AbstractMember, BaseView
 
 
 class Member(AbstractMember):
-    employee_id = models.CharField(unique=True, max_length=30, verbose_name="社員ID")
+    common_first_name = models.CharField(
+        max_length=30, blank=True, null=True, verbose_name="通称名（姓）"
+    )
+    common_last_name = models.CharField(
+        max_length=30, blank=True, null=True, verbose_name="通称名（名）"
+    )
+    common_first_name_ja = models.CharField(
+        max_length=30, blank=True, null=True, verbose_name="通称名（姓）(カナ)"
+    )
+    common_last_name_ja = models.CharField(
+        max_length=30, blank=True, null=True, verbose_name="通称名（名）(カナ)"
+    )
     is_unofficial = models.BooleanField(default=False, verbose_name="内定")
     id_number = models.CharField(blank=True, null=True, max_length=20, verbose_name="在留カード番号")
     id_card_expired_date = models.DateField(blank=True, null=True, verbose_name="在留カード期限")
@@ -150,12 +161,15 @@ class SearchMember(BaseView):
         verbose_name_plural = "メンバー一覧"
 
 
-class Salesperson(AbstractMember):
-    user = models.OneToOneField(User, blank=True, null=True, on_delete=models.PROTECT)
+class Salesperson(BaseModel):
+    member = models.OneToOneField(Member, blank=True, null=True, on_delete=models.PROTECT, verbose_name=u'社員')
+    email = models.EmailField(verbose_name=u"メールアドレス")
+    name = models.CharField(max_length=30, verbose_name=u"名前")
     section = models.ForeignKey(Organization, blank=False, null=True, on_delete=models.PROTECT, verbose_name="部署")
     member_type = models.CharField(
         max_length=1, default=5, choices=constants.CHOICE_SALESPERSON_TYPE, verbose_name="社員区分"
     )
+    user = models.OneToOneField(User, blank=True, null=True, on_delete=models.PROTECT)
     created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
     updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
     deleted_dt = models.DateTimeField(
@@ -166,7 +180,7 @@ class Salesperson(AbstractMember):
         managed = False
         db_table = 'eb_salesperson'
         default_permissions = ()
-        ordering = ('first_name', 'last_name')
+        ordering = ('name',)
         verbose_name = "営業員"
         verbose_name_plural = "営業員一覧"
 

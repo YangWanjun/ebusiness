@@ -93,16 +93,21 @@ class AbstractCompany(BaseModel):
 
 
 class AbstractMember(BaseModel):
-    last_name = models.CharField(max_length=10, verbose_name="姓")
-    first_name = models.CharField(max_length=10, verbose_name="名")
-    last_name_ja = models.CharField(blank=True, null=True, max_length=30, verbose_name="姓(フリカナ)")
-    first_name_ja = models.CharField(blank=True, null=True, max_length=30, verbose_name="名(フリカナ)")
+    member_code = models.CharField(max_length=30, db_column='employee_id', unique=True, verbose_name="コード")
+    last_name = models.CharField(max_length=10, db_column='first_name', verbose_name="姓")
+    first_name = models.CharField(max_length=10, db_column='last_name', verbose_name="名")
+    last_name_ja = models.CharField(
+        max_length=30, blank=True, null=True, db_column='first_name_ja', verbose_name="姓(フリカナ)"
+    )
+    first_name_ja = models.CharField(
+        max_length=30, blank=True, null=True, db_column='last_name_ja', verbose_name="名(フリカナ)"
+    )
     last_name_en = models.CharField(
-        blank=True, null=True, max_length=30, verbose_name="姓(ローマ字)",
+        max_length=30, blank=True, null=True, db_column='first_name_en', verbose_name="姓(ローマ字)",
         help_text="漢字ごとに先頭文字は大文字にしてください（例：XiaoWang）"
     )
     first_name_en = models.CharField(
-        blank=True, null=True, max_length=30, verbose_name="名(ローマ字)",
+        max_length=30, blank=True, null=True, db_column='last_name_en', verbose_name="名(ローマ字)",
         help_text="先頭文字は大文字にしてください（例：Zhang）"
     )
     gender = models.CharField(
@@ -121,8 +126,8 @@ class AbstractMember(BaseModel):
     )
     address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name="住所１")
     address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name="住所２")
-    lat = models.CharField(blank=True, null=True, max_length=25, verbose_name="緯度")
-    lng = models.CharField(blank=True, null=True, max_length=25, verbose_name="経度")
+    lng = models.FloatField(blank=True, null=True, verbose_name="経度")
+    lat = models.FloatField(blank=True, null=True, verbose_name="緯度")
     nearest_station = models.CharField(blank=True, null=True, max_length=15, verbose_name="最寄駅")
     years_in_japan = models.IntegerField(blank=True, null=True, verbose_name="在日年数")
     phone = models.CharField(
@@ -144,11 +149,11 @@ class AbstractMember(BaseModel):
 
     @property
     def full_name(self):
-        return '{} {}'.format(self.first_name, self.last_name)
+        return '{} {}'.format(self.last_name, self.first_name)
 
     @property
     def full_kana(self):
-        return '{} {}'.format(self.first_name_ja, self.last_name_ja)
+        return '{} {}'.format(self.last_name_ja, self.first_name_ja)
 
     @property
     def address(self):

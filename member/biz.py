@@ -5,7 +5,7 @@ from django.db import connection
 from django.db.models import Max, Q
 from django.utils import timezone
 
-from . import models, serializers
+from . import models
 from utils import common, constants
 from utils.errors import CustomException
 
@@ -28,6 +28,30 @@ def get_me(user):
     return {
         'me': me,
         'perms': user.get_all_permissions(),
+    }
+
+
+def get_brief_status():
+    with connection.cursor() as cursor:
+        cursor.callproc('sp_member_brief_status')
+        results = common.dictfetchall(cursor)
+    return results
+
+
+def get_working_status():
+    with connection.cursor() as cursor:
+        cursor.callproc('sp_member_working_status')
+        results = common.dictfetchall(cursor)
+        categories = []
+    working_list = []
+    waiting_list = []
+    for row in results:
+        categories.append(row.get('ym'))
+        working_list.append(row.get('working_count'))
+        waiting_list.append(row.get('waiting_count'))
+    return {
+        'categories': categories,
+        'data': [working_list, waiting_list]
     }
 
 

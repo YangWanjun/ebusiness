@@ -26,29 +26,11 @@ from partner import views as partner_api
 from project import views as project_api
 from turnover import views as turnover_api
 
-router = routers.ExtendedDefaultRouter()
-member_router = router.register(r'members', member_api.MemberViewSet)
-member_router.register(
-    r'salesperson-periods',
-    member_api.SalespersonPeriodViewSet,
-    basename='salesperson-periods',
-    parents_query_lookups=['member']
-)
-member_router.register(
-    r'organization-periods',
-    member_api.OrganizationPeriodViewSet,
-    basename='organization-periods',
-    parents_query_lookups=['member']
-)
-router.register(r'salesperson', member_api.SalespersonViewSet)
-router.register(r'salesperson-period', member_api.SalespersonPeriodViewSet)
-router.register(r'organization-period', member_api.OrganizationPeriodViewSet)
+router = routers.ExtendedSimpleRouter()
 
 router.register(r'project-stage', master_api.ProjectStageViewSet)
 router.register(r'bank', master_api.BankViewSet)
 router.register(r'bank-account', master_api.BankAccountViewSet)
-router.register(r'organization', member_api.OrganizationViewSet)
-router.register(r'position-ship', member_api.PositionShipViewSet)
 router.register(r'partner', partner_api.PartnerViewSet)
 router.register(r'partner-employee', partner_api.PartnerEmployeeViewSet)
 router.register(r'partner-pay-notify-recipient', partner_api.PartnerPayNotifyRecipientViewSet)
@@ -74,49 +56,47 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api-auth/', include('rest_framework.urls')),
     url(r'^api/token-auth/', obtain_jwt_token),
-    url(r'^api/', include(router.urls)),
-
     url(r'^api/me/$', member_api.MeApiView.as_view()),
-    url(r'^api/member/search$', member_api.SearchMemberView.as_view()),
-    url(r'^api/organization-division/$', member_api.DivisionListApiView.as_view()),
-    url(r'^api/organization-view/$', member_api.OrganizationListApiView.as_view()),
-    url(r'^api/organization-member/(?P<org_id>\d+)/$', member_api.OrganizationMemberApiView.as_view()),
-    url(r'^api/project/search$', project_api.SearchProjectView.as_view()),
-    url(r'^api/project/(?P<pk>\d+)/attendance$', project_api.ProjectAttendanceList.as_view()),
-    url(r'^api/project/(?P<pk>\d+)/attendance/(?P<year>\d{4})/(?P<month>\d{2})$',
-        project_api.ProjectAttendanceView.as_view()),
-    url(r'^api/project/(?P<pk>\d+)/order$', project_api.ProjectOrderListView.as_view()),
-    url(r'^api/project/request/(?P<request_no>\d{7})/$', project_api.ProjectRequestDetailApiView.as_view()),
-    url(r'^api/project/(?P<project_id>\d+)/order/(?P<order_id>\d+)/request/create/(?P<year>\d{4})/(?P<month>\d{2})$',
-        project_api.ProjectRequestCreateApiView.as_view()),
-    url(r'^api/partner-list/$', partner_api.PartnerListApiView.as_view()),
-    url(r'^api/partner/(?P<pk>\d+)/employee/$', partner_api.PartnerEmployeeChoiceApiView.as_view()),
-    url(r'^api/partner/(?P<pk>\d+)/members/$', partner_api.PartnerMembersApiView.as_view()),
-    url(r'^api/partner/(?P<pk>\d+)/monthly-status/$', partner_api.PartnerMonthlyStatusApiView.as_view()),
-    url(r'^api/partner/(?P<pk>\d+)/members-order-status/$', partner_api.PartnerMembersOrderStatusApiView.as_view()),
-    url(r'^api/partner/(?P<pk>\d+)/members/(?P<member_id>\d+)/orders/$',
-        partner_api.PartnerMemberOrdersApiView.as_view()),
-    url(r'^api/partner/member/order/(?P<pk>\d+)/$',
-        partner_api.PartnerOrderDetailApiView.as_view(), {'category': 'member'}),
-    url(r'^api/partner/(?P<pk>\d+)/members/(?P<project_member_id>\d+)/orders/create/$',
-        partner_api.BpMemberOrderCreateApiView.as_view()),
-    url(r'^api/partner/(?P<pk>\d+)/lump-contract/$', partner_api.PartnerLumpContractApiView.as_view()),
-    url(r'^api/partner/lump/order/(?P<pk>\d+)/$',
-        partner_api.PartnerOrderDetailApiView.as_view(), {'category': 'lump'}),
-    url(r'^api/partner/(?P<pk>\d+)/lump-contract/(?P<contract_id>\d+)/orders/create/$',
-        partner_api.LumpOrderCreateApiView.as_view(), {'category': 'lump'}),
-    url(r'^api/partner/(?P<pk>\d+)/division/(?P<year>\d{4})/(?P<month>\d{2})/all/$',
-        partner_api.PartnerDivisionsInMonthApi.as_view(), {'category': 'all'},),
-    url(r'^api/partner/(?P<pk>\d+)/division/(?P<year>\d{4})/(?P<month>\d{2})/$',
-        partner_api.PartnerDivisionsInMonthApi.as_view(), {'category': 'divisions'},),
-    url(r'^api/partner/(?P<pk>\d+)/division/(?P<division_id>\d+)/(?P<year>\d{4})/(?P<month>\d{2})/details/$',
-        partner_api.PartnerDivisionsInMonthApi.as_view(), {'category': 'details'},),
-    url(r'^api/partner/(?P<pk>\d+)/division/(?P<division_id>\d+)/(?P<year>\d{4})/(?P<month>\d{2})/create/$',
-        partner_api.PartnerDivisionPayNotifyCreateApiView.as_view()),
-    url(r'^api/turnover/monthly/chart$', turnover_api.TurnoverMonthlyChartView.as_view()),
-    url(r'^api/turnover/yearly/chart$', turnover_api.TurnoverYearlyChartView.as_view()),
-    url(r'^api/turnover/division/monthly/chart$', turnover_api.TurnoverMonthlyByDivisionChartView.as_view()),
-    url(r'^api/attachment/download/(?P<uuid>[^/?]+)$', master_api.FileDownloadApiView.as_view()),
-
+    url(r'^api/', include(router.urls)),
+    url(r'^api/member/', include('member.urls')),
     url(r'^partner/', include('partner.urls')),
+
+    # url(r'^api/member/search$', member_api.SearchMemberView.as_view()),
+    # url(r'^api/project/search$', project_api.SearchProjectView.as_view()),
+    # url(r'^api/project/(?P<pk>\d+)/attendance$', project_api.ProjectAttendanceList.as_view()),
+    # url(r'^api/project/(?P<pk>\d+)/attendance/(?P<year>\d{4})/(?P<month>\d{2})$',
+    #     project_api.ProjectAttendanceView.as_view()),
+    # url(r'^api/project/(?P<pk>\d+)/order$', project_api.ProjectOrderListView.as_view()),
+    # url(r'^api/project/request/(?P<request_no>\d{7})/$', project_api.ProjectRequestDetailApiView.as_view()),
+    # url(r'^api/project/(?P<project_id>\d+)/order/(?P<order_id>\d+)/request/create/(?P<year>\d{4})/(?P<month>\d{2})$',
+    #     project_api.ProjectRequestCreateApiView.as_view()),
+    # url(r'^api/partner-list/$', partner_api.PartnerListApiView.as_view()),
+    # url(r'^api/partner/(?P<pk>\d+)/employee/$', partner_api.PartnerEmployeeChoiceApiView.as_view()),
+    # url(r'^api/partner/(?P<pk>\d+)/members/$', partner_api.PartnerMembersApiView.as_view()),
+    # url(r'^api/partner/(?P<pk>\d+)/monthly-status/$', partner_api.PartnerMonthlyStatusApiView.as_view()),
+    # url(r'^api/partner/(?P<pk>\d+)/members-order-status/$', partner_api.PartnerMembersOrderStatusApiView.as_view()),
+    # url(r'^api/partner/(?P<pk>\d+)/members/(?P<member_id>\d+)/orders/$',
+    #     partner_api.PartnerMemberOrdersApiView.as_view()),
+    # url(r'^api/partner/member/order/(?P<pk>\d+)/$',
+    #     partner_api.PartnerOrderDetailApiView.as_view(), {'category': 'member'}),
+    # url(r'^api/partner/(?P<pk>\d+)/members/(?P<project_member_id>\d+)/orders/create/$',
+    #     partner_api.BpMemberOrderCreateApiView.as_view()),
+    # url(r'^api/partner/(?P<pk>\d+)/lump-contract/$', partner_api.PartnerLumpContractApiView.as_view()),
+    # url(r'^api/partner/lump/order/(?P<pk>\d+)/$',
+    #     partner_api.PartnerOrderDetailApiView.as_view(), {'category': 'lump'}),
+    # url(r'^api/partner/(?P<pk>\d+)/lump-contract/(?P<contract_id>\d+)/orders/create/$',
+    #     partner_api.LumpOrderCreateApiView.as_view(), {'category': 'lump'}),
+    # url(r'^api/partner/(?P<pk>\d+)/division/(?P<year>\d{4})/(?P<month>\d{2})/all/$',
+    #     partner_api.PartnerDivisionsInMonthApi.as_view(), {'category': 'all'},),
+    # url(r'^api/partner/(?P<pk>\d+)/division/(?P<year>\d{4})/(?P<month>\d{2})/$',
+    #     partner_api.PartnerDivisionsInMonthApi.as_view(), {'category': 'divisions'},),
+    # url(r'^api/partner/(?P<pk>\d+)/division/(?P<division_id>\d+)/(?P<year>\d{4})/(?P<month>\d{2})/details/$',
+    #     partner_api.PartnerDivisionsInMonthApi.as_view(), {'category': 'details'},),
+    # url(r'^api/partner/(?P<pk>\d+)/division/(?P<division_id>\d+)/(?P<year>\d{4})/(?P<month>\d{2})/create/$',
+    #     partner_api.PartnerDivisionPayNotifyCreateApiView.as_view()),
+    # url(r'^api/turnover/monthly/chart$', turnover_api.TurnoverMonthlyChartView.as_view()),
+    # url(r'^api/turnover/yearly/chart$', turnover_api.TurnoverYearlyChartView.as_view()),
+    # url(r'^api/turnover/division/monthly/chart$', turnover_api.TurnoverMonthlyByDivisionChartView.as_view()),
+    # url(r'^api/attachment/download/(?P<uuid>[^/?]+)$', master_api.FileDownloadApiView.as_view()),
+
 ]

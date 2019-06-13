@@ -38,11 +38,22 @@ def get_brief_status():
     return results
 
 
-def get_working_status():
+def get_member_working_status():
     with connection.cursor() as cursor:
         cursor.callproc('sp_member_working_status')
         results = common.dictfetchall(cursor)
-        categories = []
+    return chart_working_status(results)
+
+
+def get_partner_working_status():
+    with connection.cursor() as cursor:
+        cursor.callproc('sp_partner_working_status')
+        results = common.dictfetchall(cursor)
+    return chart_working_status(results)
+
+
+def chart_working_status(results):
+    categories = []
     working_list = []
     waiting_list = []
     for row in results:
@@ -51,7 +62,18 @@ def get_working_status():
         waiting_list.append(row.get('waiting_count'))
     return {
         'categories': categories,
-        'data': [working_list, waiting_list]
+        'series': [
+            {
+                'name': '待機数',
+                'data': waiting_list,
+                'color': '#FFF',
+            },
+            {
+                'name': '稼働数',
+                'data': working_list,
+                'color': '#8888e4',
+            },
+        ]
     }
 
 

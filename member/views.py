@@ -18,7 +18,8 @@ class DashboardApiView(BaseApiView):
     def get_context_data(self, **kwargs):
         return {
             'brief_status': biz.get_brief_status(),
-            'working_status': biz.get_working_status(),
+            'member_working_status': biz.get_member_working_status(),
+            'partner_working_status': biz.get_partner_working_status(),
         }
 
 

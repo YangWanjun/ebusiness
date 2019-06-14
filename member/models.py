@@ -203,3 +203,18 @@ class SalespersonPeriod(BaseModel):
         ordering = ('start_date',)
         verbose_name = "営業員期間"
         verbose_name_plural = "営業員期間一覧"
+
+
+class VReleaseMember(BaseView):
+    name = models.CharField(max_length=60, verbose_name="名前")
+    start_date = models.DateField(verbose_name="開始日")
+    end_date = models.DateField(verbose_name="終了日")
+    release_year = models.CharField(max_length=4, verbose_name="対象年")
+    release_month = models.CharField(max_length=2, verbose_name="対象月")
+
+    class Meta:
+        managed = False
+        db_table = 'v_release_member'
+        default_permissions = ()
+        verbose_name = "リリースメンバー"
+        verbose_name_plural = "リリースメンバー一覧"

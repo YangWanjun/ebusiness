@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db import connection
-from django.db.models import Max, Q
+from django.db.models import Max, Q, Count
 from django.utils import timezone
 
 from . import models
@@ -31,11 +31,11 @@ def get_me(user):
     }
 
 
-def get_brief_status():
+def get_member_status():
     with connection.cursor() as cursor:
-        cursor.callproc('sp_member_brief_status')
+        cursor.callproc('sp_member_status')
         results = common.dictfetchall(cursor)
-    return results
+    return results[0] if results and len(results) > 0 else None
 
 
 def get_member_working_status():
@@ -220,3 +220,97 @@ def get_member_salesperson_by_month(member, date):
         raise CustomException(constants.ERROR_NO_SALESPERSON.format(name=member))
     except MultipleObjectsReturned:
         raise CustomException(constants.ERROR_MULTI_SALESPERSON.format(name=member))
+
+
+def get_release_status():
+    qs = models.VReleaseMember.objects.values(
+        'release_year',
+        'release_month',
+    ).annotate(
+        member_count=Count('id'),
+    )
+    today = timezone.now().date()
+    data = {}
+    for item in qs:
+        ym = '{}{}'.format(item.get('release_year'), item.get('release_month'))
+        if ym == today.strftime('%Y%m'):
+            data['curr_month'] = item.get('member_count')
+        elif ym == common.add_months(today).strftime('%Y%m'):
+            data['next_month'] = item.get('member_count')
+        elif ym == common.add_months(today, 2).strftime('%Y%m'):
+            data['next_2_month'] = item.get('member_count')
+    return data
+
+
+def get_salesperson_status():
+    with connection.cursor() as cursor:
+        cursor.callproc('sp_salesperson_status')
+        results = common.dictfetchall(cursor)
+    return chart_salesperson_status(results)
+
+
+def chart_salesperson_status(results):
+    member_count_data = []
+    working_count_data = []
+    waiting_count_data = []
+    curr_release_count_data = []
+    next_release_count_data = []
+    next_2_release_count_data = []
+    status_list = [
+        {
+            'name': '各営業が担当のメンバー数',
+            'series': [{
+                'name': '担当のメンバー数',
+                'colorByPoint': True,
+                'data': member_count_data
+            }],
+        },
+        {
+            'name': '各営業の稼働中メンバー数',
+            'series': [{
+                'name': '稼働中メンバー数',
+                'colorByPoint': True,
+                'data': working_count_data
+            }],
+        },
+        {
+            'name': '各営業の待機中メンバー数',
+            'series': [{
+                'name': '待機中メンバー数',
+                'colorByPoint': True,
+                'data': waiting_count_data
+            }],
+        },
+        {
+            'name': '各営業の今月リリース人数',
+            'series': [{
+                'name': '今月リリース人数',
+                'colorByPoint': True,
+                'data': curr_release_count_data
+            }],
+        },
+        {
+            'name': '各営業の来月リリース人数',
+            'series': [{
+                'name': '来月リリース人数',
+                'colorByPoint': True,
+                'data': next_release_count_data
+            }],
+        },
+        {
+            'name': '各営業の再来月リリース人数',
+            'series': [{
+                'name': '再来月リリース人数',
+                'colorByPoint': True,
+                'data': next_2_release_count_data
+            }],
+        },
+    ]
+    for row in results:
+        member_count_data.append({'name': row.get('name'), 'y': row.get('member_count')})
+        working_count_data.append({'name': row.get('name'), 'y': row.get('working_count')})
+        waiting_count_data.append({'name': row.get('name'), 'y': row.get('waiting_count')})
+        curr_release_count_data.append({'name': row.get('name'), 'y': row.get('curr_release_count')})
+        next_release_count_data.append({'name': row.get('name'), 'y': row.get('next_release_count')})
+        next_2_release_count_data.append({'name': row.get('name'), 'y': row.get('next_2_release_count')})
+    return status_list

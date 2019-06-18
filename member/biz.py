@@ -250,67 +250,55 @@ def get_salesperson_status():
 
 
 def chart_salesperson_status(results):
-    member_count_data = []
+    categories = []
+    # member_count_data = []
     working_count_data = []
     waiting_count_data = []
     curr_release_count_data = []
     next_release_count_data = []
     next_2_release_count_data = []
-    status_list = [
-        {
-            'name': '各営業が担当のメンバー数',
-            'series': [{
-                'name': '担当のメンバー数',
-                'colorByPoint': True,
-                'data': member_count_data
-            }],
-        },
-        {
-            'name': '各営業の稼働中メンバー数',
-            'series': [{
-                'name': '稼働中メンバー数',
-                'colorByPoint': True,
-                'data': working_count_data
-            }],
-        },
-        {
-            'name': '各営業の待機中メンバー数',
-            'series': [{
-                'name': '待機中メンバー数',
-                'colorByPoint': True,
-                'data': waiting_count_data
-            }],
-        },
-        {
-            'name': '各営業の今月リリース人数',
-            'series': [{
-                'name': '今月リリース人数',
-                'colorByPoint': True,
-                'data': curr_release_count_data
-            }],
-        },
-        {
-            'name': '各営業の来月リリース人数',
-            'series': [{
-                'name': '来月リリース人数',
-                'colorByPoint': True,
-                'data': next_release_count_data
-            }],
-        },
-        {
-            'name': '各営業の再来月リリース人数',
-            'series': [{
-                'name': '再来月リリース人数',
-                'colorByPoint': True,
-                'data': next_2_release_count_data
-            }],
-        },
-    ]
+    status_list = {
+        'raw_data': results,
+        'categories': categories,
+        'series': [
+            # {
+            #     'name': '担当のメンバー数',
+            #     'data': member_count_data,
+            #     'stack': '総担当数'
+            # },
+            {
+                'name': '稼働中人数',
+                'data': working_count_data,
+                'stack': '総担当数'
+            },
+            {
+                'name': '待機中人数',
+                'data': waiting_count_data,
+                'stack': '総担当数'
+            },
+            {
+                'name': '今月リリース数',
+                'data': curr_release_count_data,
+                'stack': '総リリース数'
+            },
+            {
+                'name': '来月リリース数',
+                'data': next_release_count_data,
+                'stack': '総リリース数'
+            },
+            {
+                'name': '再来月リリース数',
+                'data': next_2_release_count_data,
+                'stack': '総リリース数'
+            },
+        ]
+    }
     for row in results:
-        member_count_data.append({'name': row.get('name'), 'y': row.get('member_count')})
-        working_count_data.append({'name': row.get('name'), 'y': row.get('working_count')})
-        waiting_count_data.append({'name': row.get('name'), 'y': row.get('waiting_count')})
-        curr_release_count_data.append({'name': row.get('name'), 'y': row.get('curr_release_count')})
-        next_release_count_data.append({'name': row.get('name'), 'y': row.get('next_release_count')})
-        next_2_release_count_data.append({'name': row.get('name'), 'y': row.get('next_2_release_count')})
+        categories.append(row.get('name'))
+        # member_count_data.append(row.get('member_count'))
+        working_count_data.append(row.get('working_count'))
+        waiting_count_data.append(row.get('waiting_count'))
+        curr_release_count_data.append(row.get('curr_release_count'))
+        next_release_count_data.append(row.get('next_release_count'))
+        next_2_release_count_data.append(row.get('next_2_release_count'))
     return status_list

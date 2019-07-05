@@ -24,6 +24,7 @@ def get_me(user):
         'is_superuser': user.is_superuser,
         'is_staff': user.is_staff,
         'is_active': user.is_active,
+        'full_name': '{last_name} {first_name}'.format(last_name=user.last_name, first_name=user.first_name),
     }
     return {
         'me': me,
@@ -302,3 +303,19 @@ def chart_salesperson_status(results):
         next_release_count_data.append(row.get('next_release_count'))
         next_2_release_count_data.append(row.get('next_2_release_count'))
     return status_list
+
+
+def get_duplicated_members(first_name, last_name):
+    """同じ名前の持つメンバーが存在するかどうか
+
+    :param first_name:
+    :param last_name:
+    :return:
+    """
+    first_name = first_name.strip() if first_name else None
+    last_name = last_name.strip() if last_name else None
+    queryset = models.Member.objects.filter(
+        first_name=first_name,
+        last_name=last_name,
+    )
+    return queryset

@@ -63,6 +63,13 @@ class MemberViewSet(NestedViewSetMixin, BaseModelViewSet):
         data = biz.get_salesperson_history(kwargs.get('pk'))
         return Response(data)
 
+    @action(methods=['post'], url_path='duplicated', detail=False)
+    def check_duplicated(self, *args, **kwargs):
+        first_name = self.request.data.get('first_name')
+        last_name = self.request.data.get('last_name')
+        qs = biz.get_duplicated_members(first_name, last_name)
+        return Response(serializers.MemberSerializer(qs, many=True).data)
+
 
 class SalespersonViewSet(NestedViewSetMixin, BaseModelViewSet):
     queryset = models.Salesperson.objects.all()

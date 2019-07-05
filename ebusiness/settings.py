@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'django_filters',
+    'contract.apps.ContractConfig',
     'partner.apps.PartnerConfig',
     'project.apps.ProjectConfig',
     'mail.apps.MailConfig',
@@ -155,7 +156,7 @@ REST_FRAMEWORK = {
 
 JWT_AUTH = {
     # how long the original token is valid for
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(minutes=30),
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=24),
 
     # allow refreshing of tokens
     'JWT_ALLOW_REFRESH': True,

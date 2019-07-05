@@ -59,6 +59,7 @@ urlpatterns = [
     url(r'^api/me/$', member_api.MeApiView.as_view()),
     url(r'^api/', include(router.urls)),
     url(r'^api/member/', include('member.urls')),
+    url(r'^api/contract/', include('contract.urls')),
     url(r'^partner/', include('partner.urls')),
 
     # url(r'^api/member/search$', member_api.SearchMemberView.as_view()),

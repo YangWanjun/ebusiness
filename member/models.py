@@ -8,6 +8,11 @@ from utils.models import BaseModel, AbstractMember, BaseView
 
 
 class Member(AbstractMember):
+    organization = models.ForeignKey(
+        'Organization', blank=True, null=True, db_column='section_id', on_delete=models.PROTECT, verbose_name="部署",
+        help_text="開発メンバーなど営業必要な方はしたの「社員の部署期間」のほうで設定してください、"
+                  "ここで設定できるのは管理部、総務部などの営業対象外のかたです。"
+    )
     common_first_name = models.CharField(
         max_length=30, blank=True, null=True, verbose_name="通称名（姓）"
     )
@@ -32,9 +37,15 @@ class Member(AbstractMember):
     )
     # pay_bank = models.ForeignKey(Bank, blank=True, null=True, on_delete=PROTECT, verbose_name="銀行")
     # pay_branch = models.ForeignKey(BankBranch, blank=True, null=True, on_delete=PROTECT, verbose_name="銀行支店")
+    pay_bank_code = models.CharField(max_length=20, blank=True, null=True, verbose_name="銀行コード")
+    pay_bank_name = models.CharField(max_length=20, blank=True, null=True, db_column='pay_bank', verbose_name="銀行名")
+    pay_branch_code = models.CharField(max_length=20, blank=True, null=True, verbose_name="銀行支店コード")
+    pay_branch_name = models.CharField(
+        max_length=20, blank=True, null=True, db_column='pay_branch', verbose_name="銀行支店名"
+    )
+    pay_account = models.CharField(blank=True, null=True, max_length=20, verbose_name="口座番号")
     pay_owner = models.CharField(blank=True, null=True, max_length=20, verbose_name="口座名義")
     pay_owner_kana = models.CharField(blank=True, null=True, max_length=20, verbose_name="口座名義（カナ）")
-    pay_account = models.CharField(blank=True, null=True, max_length=20, verbose_name="口座番号")
     avatar_url = models.CharField(blank=True, null=True, max_length=500, verbose_name="自分の写真")
     created_dt = models.DateTimeField(auto_now_add=True, db_column='created_date', verbose_name="作成日時")
     updated_dt = models.DateTimeField(auto_now=True, db_column='updated_date', verbose_name="更新日時")
@@ -163,8 +174,8 @@ class SearchMember(BaseView):
 
 class Salesperson(BaseModel):
     member = models.OneToOneField(Member, blank=True, null=True, on_delete=models.PROTECT, verbose_name=u'社員')
-    email = models.EmailField(verbose_name=u"メールアドレス")
-    name = models.CharField(max_length=30, verbose_name=u"名前")
+    email = models.EmailField(verbose_name="メールアドレス")
+    name = models.CharField(max_length=30, verbose_name="名前")
     section = models.ForeignKey(Organization, blank=False, null=True, on_delete=models.PROTECT, verbose_name="部署")
     member_type = models.CharField(
         max_length=1, default=5, choices=constants.CHOICE_SALESPERSON_TYPE, verbose_name="社員区分"

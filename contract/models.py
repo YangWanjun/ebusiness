@@ -56,13 +56,13 @@ class Contract(BaseModel):
     member_type = models.CharField(
         max_length=1, blank=True, null=True, choices=constants.CHOICE_MEMBER_TYPE, verbose_name="雇用形態",
     )
+    is_loan = models.BooleanField(default=False, verbose_name="出向")
     insurance = models.CharField(
         max_length=1, blank=True, null=True, default='0',
         choices=constants.CHOICE_INSURANCE,
         verbose_name="社会保険加入有無",
         help_text="0:加入しない、1:加入する"
     )
-    is_loan = models.BooleanField(default=False, verbose_name="出向")
     calculate_type = models.CharField(
         max_length=2, blank=True, null=True, choices=constants.CHOICE_CALCULATE_TYPE, verbose_name="時間計算種類"
     )
